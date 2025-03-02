@@ -176,15 +176,20 @@ function startTimer() {
 }
 
 function insertSyllable(syllable) {
-    const emptyIndex = placedSyllables.indexOf(undefined);
+    // Find the next empty hollow box in ascending order
+    let emptyIndex = -1;
+    for (let i = 0; i < hollowBlocksElement.children.length; i++) {
+        if (!placedSyllables[i]) {
+            emptyIndex = i;
+            break;
+        }
+    }
     if (emptyIndex !== -1) {
         const hollow = hollowBlocksElement.children[emptyIndex];
         hollow.textContent = syllable;
         placedSyllables[emptyIndex] = syllable;
         playSyllableHint(syllable, words[currentWordIndex].syllableAudios); // Play sound on tap
         checkCompletion();
-    } else {
-        interchangeSyllable(hollowBlocksElement.children[placedSyllables.length - 1]); // Auto-interchange if no empty slot
     }
 }
 
@@ -192,11 +197,20 @@ function interchangeSyllable(target) {
     const index = parseInt(target.dataset.index);
     if (placedSyllables[index]) {
         const syllable = placedSyllables[index];
-        const availableSyllables = words[currentWordIndex].syllables.filter(s => !placedSyllables.includes(s) || s === syllable);
+        const availableSyllables = words[currentWordIndex].syllables;
         const newSyllable = prompt(`Enter a syllable to swap with ${syllable} (e.g., ${availableSyllables.join(', ')}):`);
-        if (newSyllable && words[currentWordIndex].syllables.includes(newSyllable)) {
+        if (newSyllable && availableSyllables.includes(newSyllable)) {
             const newIndex = placedSyllables.indexOf(newSyllable) !== -1 ? placedSyllables.indexOf(newSyllable) : placedSyllables.indexOf(undefined);
-            if (newIndex !== -1) {
+            if (newIndex !== -1 || !placedSyllables.includes(newSyllable)) {
+                if (newIndex === -1) {
+                    // Find the next empty slot if newSyllable isn't placed
+                    for (let i = 0; i < hollowBlocksElement.children.length; i++) {
+                        if (!placedSyllables[i]) {
+                            newIndex = i;
+                            break;
+                        }
+                    }
+                }
                 placedSyllables[newIndex] = syllable;
                 hollowBlocksElement.children[newIndex].textContent = syllable;
                 placedSyllables[index] = newSyllable;
@@ -204,7 +218,7 @@ function interchangeSyllable(target) {
                 playSyllableHint(newSyllable, words[currentWordIndex].syllableAudios);
                 checkCompletion();
             } else {
-                alert("No available slot to swap!");
+                alert("That syllable is already placed and cannot be swapped again!");
             }
         } else {
             alert("Invalid syllable!");
