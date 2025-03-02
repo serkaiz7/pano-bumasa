@@ -14,7 +14,7 @@ const words = [
 let currentWordIndex = 0;
 let placedSyllables = [];
 let timer = null;
-let timeLeft = 60; // Increased to 60 seconds
+let timeLeft = 35; // Changed to 35 seconds
 
 const levelElement = document.getElementById('level');
 const wordImageElement = document.getElementById('wordImage');
@@ -51,7 +51,7 @@ function loadWord() {
     // Show timer for Levels 2 to 10 (words 2-10)
     if (currentWordIndex > 0) {
         timerContainer.style.display = 'block';
-        timeLeft = 60; // Set to 60 seconds
+        timeLeft = 35; // Set to 35 seconds
         timerBar.style.width = '100%';
         startTimer();
     } else {
@@ -110,11 +110,11 @@ function startTimer() {
     if (timer) clearInterval(timer);
     timer = setInterval(() => {
         timeLeft--;
-        const percentage = (timeLeft / 35) * 100; // Adjusted for 60 seconds
+        const percentage = (timeLeft / 35) * 100; // Adjusted for 35 seconds
         timerBar.style.width = `${percentage}%`;
         tickSound.play().catch(() => console.log('Tick sound failed to load'));
-        if (timeLeft === 30) {
-            hintOverlay.style.display = 'block'; // Show hint at 30 seconds
+        if (timeLeft === 18) { // Show hint at approximately 18 seconds (half of 35)
+            hintOverlay.style.display = 'block';
         }
         if (timeLeft <= 0) {
             clearInterval(timer);
@@ -185,9 +185,11 @@ function handleDrop(target, syllable) {
             if (draggedBlock) draggedBlock.remove();
             correctSound.play().catch(() => console.log('Correct sound failed to load'));
 
-            // Check if all syllables are correctly placed in order
-            if (placedSyllables.length === words[currentWordIndex].syllables.length &&
-                placedSyllables.every((s, i) => s === words[currentWordIndex].syllables[i])) {
+            // Check if all hollow blocks are correctly filled
+            const allFilled = Array.from(hollowBlocksElement.children).every((block, i) => {
+                return placedSyllables[i] === words[currentWordIndex].syllables[i];
+            });
+            if (allFilled && placedSyllables.length === words[currentWordIndex].syllables.length) {
                 clearInterval(timer);
                 const wordAudio = new Audio(words[currentWordIndex].audio);
                 wordAudio.play().catch(() => console.log('Word audio failed to load'));
