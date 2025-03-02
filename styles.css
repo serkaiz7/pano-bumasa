@@ -36,26 +36,7 @@ body {
     margin-bottom: 10px;
 }
 
-.page-buttons {
-    margin-bottom: 10px;
-}
-
-.page-buttons button {
-    padding: 6px 12px;
-    font-size: 1.1em;
-    background-color: #ff4500;
-    color: #fff;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-    margin: 0 5px;
-}
-
-.page-buttons button.active {
-    background-color: #ff6347;
-}
-
-.word-list {
+.word-container {
     margin-bottom: 10px;
 }
 
@@ -63,45 +44,46 @@ body {
     display: flex;
     flex-direction: column;
     align-items: center;
-    margin: 10px 0;
-    padding: 8px;
+    margin: 20px 0;
+    padding: 10px;
     background-color: #ffd700;
-    border-radius: 5px;
-}
-
-.word-item img {
-    width: 40px;
-    height: 40px;
-    margin-bottom: 5px;
-    border-radius: 5px;
-}
-
-.word-item .word-text {
-    font-size: 1.3em;
-    color: #333;
+    border-radius: 8px;
     text-align: center;
 }
 
+.word-item img {
+    width: 60px;
+    height: 60px;
+    margin-bottom: 10px;
+    border-radius: 5px;
+}
+
 .word-item .syllables {
-    font-size: 1.2em;
+    font-size: 1.5em; /* Increased for readability */
     color: #666;
-    margin-top: 5px;
+    margin-bottom: 10px;
 }
 
 .word-item .syllables span {
-    margin: 0 2px;
+    margin: 0 5px;
     cursor: pointer;
 }
 
+.word-item .word-text {
+    font-size: 1.6em; /* Increased for readability */
+    color: #333;
+}
+
 #nextButton {
-    padding: 10px;
-    font-size: 1.1em;
+    padding: 12px;
+    font-size: 1.2em;
     background-color: #ff4500;
     color: #fff;
     border: none;
     border-radius: 5px;
     cursor: pointer;
     width: 80%;
+    margin: 0 auto;
 }
 
 #nextButton:hover {
@@ -353,10 +335,10 @@ h1 {
         padding: 5px;
     }
     .word-item img {
-        width: 35px;
-        height: 35px;
+        width: 50px;
+        height: 50px;
     }
-    .word-item .word-text, .word-item .syllables {
-        font-size: 0.9em;
+    .word-item .syllables, .word-item .word-text {
+        font-size: 1.3em;
     }
 }
