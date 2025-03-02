@@ -12,9 +12,9 @@ const words = [
 ];
 
 // Shuffle words randomly
-words.sort(() => Math.random() - 0.5);
-
+let shuffledWords = [...words].sort(() => Math.random() - 0.5);
 let currentWordIndex = 0;
+
 let placedSyllables = [];
 let initialPlacedSyllables = [];
 let timer = null;
@@ -34,9 +34,7 @@ const congratsOverlay = document.getElementById('congratsOverlay');
 const retryCongratsButton = document.getElementById('retryCongratsButton');
 const pregameOverlay = document.getElementById('pregameOverlay');
 const nextButton = document.getElementById('nextButton');
-const wordList = document.getElementById('wordList');
-const page1Button = document.getElementById('page1Button');
-const page2Button = document.getElementById('page2Button');
+const wordContainer = document.getElementById('wordContainer');
 const finalScore = document.getElementById('finalScore');
 const wrongLevels = document.getElementById('wrongLevels');
 
@@ -46,20 +44,17 @@ const tickSound = new Audio('tick.mp3');
 const clapSound = new Audio('clap.mp3');
 
 // Pre-game setup
-let currentPage = 1;
+let currentWord = 0;
 window.onload = () => {
-    function showPage(page) {
-        wordList.innerHTML = '';
-        const start = (page - 1) * 5;
-        const end = start + 5;
-        words.slice(start, end).reverse().forEach((wordData, index) => {
-            const level = (page === 1 ? words.length - index : 5 - index);
+    function showWord() {
+        wordContainer.innerHTML = '';
+        if (currentWord < shuffledWords.length) {
+            const wordData = shuffledWords[currentWord];
             const item = document.createElement('div');
             item.classList.add('word-item');
             item.innerHTML = `
                 <img src="${wordData.image}" alt="${wordData.word}">
-                <div class="word-text">Level ${level}: ${wordData.word}</div>
-                <div class="syllables">${wordData.syllables.map(s => `<span>${s}</span>`).join(' + ')}</div>
+                <div class="syllables">${wordData.syllables.map(s => `<span>${s}</span>`).join(' ')}</div>
             `;
             item.querySelector('img').addEventListener('click', () => {
                 const audio = new Audio(wordData.audio);
@@ -71,34 +66,31 @@ window.onload = () => {
                     audio.play().catch(() => console.log(`Syllable audio ${wordData.syllableAudios[i]} failed to load`));
                 });
             });
-            wordList.appendChild(item);
-        });
+            wordContainer.appendChild(item);
+            nextButton.style.display = currentWord < shuffledWords.length - 1 ? 'block' : 'none';
+        } else {
+            nextButton.style.display = 'none';
+        }
     }
 
-    page1Button.addEventListener('click', () => {
-        currentPage = 1;
-        page1Button.classList.add('active');
-        page2Button.classList.remove('active');
-        showPage(1);
-    });
-
-    page2Button.addEventListener('click', () => {
-        currentPage = 2;
-        page2Button.classList.add('active');
-        page1Button.classList.remove('active');
-        showPage(2);
-    });
-
-    page1Button.click(); // Default to Page 1
     nextButton.addEventListener('click', () => {
-        pregameOverlay.style.display = 'none';
-        document.querySelector('.game-container').style.display = 'block';
-        loadWord();
+        currentWord++;
+        showWord();
+    });
+
+    showWord(); // Show first word
+    pregameOverlay.style.display = 'block';
+    nextButton.addEventListener('click', () => {
+        if (currentWord === shuffledWords.length) {
+            pregameOverlay.style.display = 'none';
+            document.querySelector('.game-container').style.display = 'block';
+            loadWord();
+        }
     });
 };
 
 function loadWord() {
-    const wordData = words[currentWordIndex];
+    const wordData = shuffledWords[currentWordIndex];
     wordImageElement.src = wordData.image;
     wordImageElement.style.transform = 'scale(0)';
     setTimeout(() => {
@@ -128,7 +120,8 @@ function loadWord() {
         hollow.classList.add('hollow-block');
         hollow.dataset.index = index;
         hollow.dataset.expected = syllable;
-        hollow.addEventListener('click', () => interchangeSyllable(hollow));
+        hollow.addEventListener('click', () => clearSyllable(hollow));
+        hollow.addEventListener('click', () => interchangeSyllable(hollow)); // Allow interchange after clear
         hollowBlocksElement.appendChild(hollow);
     });
 
@@ -145,9 +138,9 @@ function loadWord() {
 
     // Hint on tap or Enter key for word (via image)
     wordImageElement.onclick = () => playWordHint(wordData);
-    wordDisplayElement.onkeydown = (e) => {
-        if (e.key === 'Enter') playWordHint(wordData);
-    };
+    // wordDisplayElement.onkeydown = (e) => { // Removed since wordDisplay is gone
+    //     if (e.key === 'Enter') playWordHint(wordData);
+    // };
 }
 
 function playWordHint(wordData) {
@@ -157,10 +150,10 @@ function playWordHint(wordData) {
 }
 
 function playSyllableHint(syllable, syllableAudios) {
-    const index = words[currentWordIndex].syllables.indexOf(syllable);
+    const index = shuffledWords[currentWordIndex].syllables.indexOf(syllable);
     if (index !== -1) {
-        const audio = new Audio(syllableAudios[index]);
-        audio.play().catch(() => console.log(`Syllable audio ${syllableAudios[index]} failed to load`));
+        const audio = new Audio(shuffledWords[currentWordIndex].syllableAudios[index]);
+        audio.play().catch(() => console.log(`Syllable audio ${shuffledWords[currentWordIndex].syllableAudios[index]} failed to load`));
     }
 }
 
@@ -179,7 +172,6 @@ function startTimer() {
 }
 
 function insertSyllable(syllable) {
-    // Find the next empty hollow box in ascending order
     let emptyIndex = -1;
     for (let i = 0; i < hollowBlocksElement.children.length; i++) {
         if (!placedSyllables[i]) {
@@ -191,7 +183,16 @@ function insertSyllable(syllable) {
         const hollow = hollowBlocksElement.children[emptyIndex];
         hollow.textContent = syllable;
         placedSyllables[emptyIndex] = syllable;
-        playSyllableHint(syllable, words[currentWordIndex].syllableAudios); // Play sound on tap
+        playSyllableHint(syllable, shuffledWords[currentWordIndex].syllableAudios); // Play sound on tap
+        checkCompletion();
+    }
+}
+
+function clearSyllable(target) {
+    const index = parseInt(target.dataset.index);
+    if (placedSyllables[index]) {
+        placedSyllables[index] = undefined;
+        target.textContent = '';
         checkCompletion();
     }
 }
@@ -200,7 +201,7 @@ function interchangeSyllable(target) {
     const index = parseInt(target.dataset.index);
     if (placedSyllables[index]) {
         const syllable = placedSyllables[index];
-        const availableSyllables = words[currentWordIndex].syllables;
+        const availableSyllables = shuffledWords[currentWordIndex].syllables;
         const newSyllable = prompt(`Enter a syllable to swap with ${syllable} (e.g., ${availableSyllables.join(', ')}):`);
         if (newSyllable && availableSyllables.includes(newSyllable)) {
             const newIndex = placedSyllables.indexOf(newSyllable) !== -1 ? placedSyllables.indexOf(newSyllable) : placedSyllables.indexOf(undefined);
@@ -217,7 +218,7 @@ function interchangeSyllable(target) {
                 hollowBlocksElement.children[newIndex].textContent = syllable;
                 placedSyllables[index] = newSyllable;
                 target.textContent = newSyllable;
-                playSyllableHint(newSyllable, words[currentWordIndex].syllableAudios);
+                playSyllableHint(newSyllable, shuffledWords[currentWordIndex].syllableAudios);
                 checkCompletion();
             } else {
                 alert("That syllable is already placed and cannot be swapped again!");
@@ -229,21 +230,21 @@ function interchangeSyllable(target) {
 }
 
 function checkCompletion() {
-    if (placedSyllables.length === words[currentWordIndex].syllables.length) {
+    if (placedSyllables.length === shuffledWords[currentWordIndex].syllables.length) {
         clearInterval(timer);
         if (!initialPlacedSyllables.length) {
             initialPlacedSyllables = [...placedSyllables]; // Record initial order
         }
-        if (placedSyllables.every((s, i) => s === words[currentWordIndex].syllables[i])) {
+        if (placedSyllables.every((s, i) => s === shuffledWords[currentWordIndex].syllables[i])) {
             score++;
         } else if (!wrongAnswers.some(w => w.level === currentWordIndex + 1)) {
             wrongAnswers.push({
                 level: currentWordIndex + 1,
                 wrongOrder: [...initialPlacedSyllables],
-                correctOrder: [...words[currentWordIndex].syllables]
+                correctOrder: [...shuffledWords[currentWordIndex].syllables]
             });
         }
-        const wordAudio = new Audio(words[currentWordIndex].audio);
+        const wordAudio = new Audio(shuffledWords[currentWordIndex].audio);
         wordAudio.play().catch(() => console.log('Word audio failed to load'));
         messageElement.textContent = "Next Level!";
         messageElement.style.color = '#32cd32';
@@ -253,7 +254,7 @@ function checkCompletion() {
 
 function nextWord() {
     currentWordIndex++;
-    if (currentWordIndex < words.length) {
+    if (currentWordIndex < shuffledWords.length) {
         placedSyllables = []; // Reset for next level
         loadWord();
     } else {
@@ -263,7 +264,7 @@ function nextWord() {
 
 function highlightNextSyllable() {
     const nextIndex = placedSyllables.filter(s => s).length;
-    if (nextIndex < words[currentWordIndex].syllables.length) {
+    if (nextIndex < shuffledWords[currentWordIndex].syllables.length) {
         const hollow = hollowBlocksElement.children[nextIndex];
         hollow.style.borderColor = '#32cd32';
         hollow.style.transform = 'scale(1.1)';
@@ -306,6 +307,7 @@ retryButton.addEventListener('click', () => {
     wrongAnswers = [];
     placedSyllables = [];
     initialPlacedSyllables = [];
+    shuffledWords = [...words].sort(() => Math.random() - 0.5); // Reshuffle
     loadWord();
 });
 
@@ -316,6 +318,7 @@ retryCongratsButton.addEventListener('click', () => {
     wrongAnswers = [];
     placedSyllables = [];
     initialPlacedSyllables = [];
+    shuffledWords = [...words].sort(() => Math.random() - 0.5); // Reshuffle
     loadWord();
 });
 
