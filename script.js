@@ -5,10 +5,10 @@ const words = [
     { word: "estudyante", syllables: ["es", "tu", "dyan", "te"], image: "estudyante.jpg", audio: "estudyante.wav" },
     { word: "manggagamot", syllables: ["mang", "ga", "ga", "mot"], image: "manggagamot.jpg", audio: "manggagamot.wav" },
     { word: "empleyado", syllables: ["em", "ple", "ya", "do"], image: "empleyado.jpg", audio: "empleyado.wav" },
+    { word: "tagapagbantay", syllables: ["ta", "ga", "pag", "ban", "tay"], image: "tagapagbantay.jpg", audio: "tagapagbantay.wav" },
     { word: "tanghalian", syllables: ["tang", "ha", "li", "an"], image: "tanghalian.jpg", audio: "tanghalian.wav" },
     { word: "munisipyo", syllables: ["mu", "ni", "si", "pyo"], image: "munisipyo.jpg", audio: "munisipyo.wav" },
-    { word: "paborito", syllables: ["pa", "bo", "ri", "to"], image: "paborito.jpg", audio: "paborito.wav" },
-    { word: "tagapagbantay", syllables: ["ta", "ga", "pag", "ban", "tay"], image: "tagapagbantay.jpg", audio: "tagapagbantay.wav" }
+    { word: "paborito", syllables: ["pa", "bo", "ri", "to"], image: "paborito.jpg", audio: "paborito.wav" }
 ];
 
 let currentWordIndex = 0;
@@ -21,8 +21,8 @@ const hollowBlocksElement = document.getElementById('hollowBlocks');
 const syllableBlocksElement = document.getElementById('syllableBlocks');
 const messageElement = document.getElementById('message');
 
-const correctSound = new Audio('correct.mp3');
-const wrongSound = new Audio('wrong.mp3');
+const correctSound = new Audio('correct.wav');
+const wrongSound = new Audio('wrong.wav');
 
 function loadWord() {
     const wordData = words[currentWordIndex];
@@ -43,6 +43,7 @@ function loadWord() {
         const hollow = document.createElement('div');
         hollow.classList.add('hollow-block');
         hollow.dataset.index = index;
+        hollow.dataset.expected = wordData.syllables[index];
         hollow.addEventListener('dragover', dragOver);
         hollow.addEventListener('drop', drop);
         hollowBlocksElement.appendChild(hollow);
@@ -129,8 +130,9 @@ function touchEnd(e) {
 
 function handleDrop(target, syllable) {
     const index = target.dataset.index;
+    const expected = target.dataset.expected;
     if (placedSyllables[index] === undefined) {
-        if (words[currentWordIndex].syllables[index] === syllable) {
+        if (syllable === expected) {
             target.textContent = syllable;
             target.classList.add('filled');
             placedSyllables[index] = syllable;
@@ -143,6 +145,8 @@ function handleDrop(target, syllable) {
                 messageElement.style.color = '#32cd32';
                 correctSound.play().catch(() => console.log('Sound failed to load'));
                 setTimeout(nextWord, 1500);
+            } else {
+                correctSound.play().catch(() => console.log('Sound failed to load'));
             }
         } else {
             messageElement.textContent = "Try again!";
