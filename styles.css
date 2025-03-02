@@ -209,6 +209,22 @@ h1 {
     font-size: 2.5em;
 }
 
+.congrats-popup button {
+    padding: 10px 20px;
+    font-size: 1.2em;
+    background-color: #ff4500;
+    color: #fff;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    margin-top: 10px;
+    transition: background-color 0.3s;
+}
+
+.congrats-popup button:hover {
+    background-color: #ff6347;
+}
+
 .congrats-overlay .confetti {
     position: absolute;
     width: 10px;
@@ -258,7 +274,7 @@ h1 {
     .game-over-popup h2, .congrats-popup h2 {
         font-size: 1.8em;
     }
-    .game-over-popup button {
+    .game-over-popup button, .congrats-popup button {
         font-size: 1em;
     }
 }
