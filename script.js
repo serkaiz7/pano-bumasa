@@ -80,24 +80,25 @@ function loadWord() {
         block.addEventListener('touchstart', touchStart);
         block.addEventListener('touchmove', touchMove);
         block.addEventListener('touchend', touchEnd);
-        block.addEventListener('dblclick', () => playSyllableSound(block.textContent, wordData.syllableAudios));
+        block.addEventListener('dblclick', () => playSyllableHint(syllable, words[currentWordIndex].syllableAudios));
         block.tabIndex = 0;
         syllableBlocksElement.appendChild(block);
     });
 
     // Hint on double-click or Enter key for word
-    wordDisplayElement.ondblclick = () => playHint(wordData);
+    wordDisplayElement.ondblclick = () => playWordHint(wordData);
     wordDisplayElement.onkeydown = (e) => {
-        if (e.key === 'Enter') playHint(wordData);
+        if (e.key === 'Enter') playWordHint(wordData);
     };
 }
 
-function playHint(wordData) {
+function playWordHint(wordData) {
     const wordAudio = new Audio(wordData.audio);
     wordAudio.play().catch(() => console.log('Word audio failed to load'));
+    highlightNextSyllable();
 }
 
-function playSyllableSound(syllable, syllableAudios) {
+function playSyllableHint(syllable, syllableAudios) {
     const index = words[currentWordIndex].syllables.indexOf(syllable);
     if (index !== -1) {
         const audio = new Audio(syllableAudios[index]);
