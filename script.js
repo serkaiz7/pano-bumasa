@@ -28,10 +28,10 @@ const gameOverOverlay = document.getElementById('gameOverOverlay');
 const retryButton = document.getElementById('retryButton');
 const congratsOverlay = document.getElementById('congratsOverlay');
 
-const correctSound = new Audio('correct.wav');
-const wrongSound = new Audio('wrong.wav');
-const tickSound = new Audio('tick.wav');
-const clapSound = new Audio('clap.wav');
+const correctSound = new Audio('correct.mp3');
+const wrongSound = new Audio('wrong.mp3');
+const tickSound = new Audio('tick.mp3');
+const clapSound = new Audio('clap.mp3');
 
 function loadWord() {
     const wordData = words[currentWordIndex];
