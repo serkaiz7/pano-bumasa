@@ -13,7 +13,7 @@ const words = [
 
 let currentWordIndex = 0;
 let placedSyllables = [];
-let initialPlacedSyllables = []; // To record initial wrong order
+let initialPlacedSyllables = [];
 let timer = null;
 let timeLeft = 35;
 let score = 0;
@@ -52,7 +52,7 @@ window.onload = () => {
         const start = (page - 1) * 5;
         const end = start + 5;
         words.slice(start, end).reverse().forEach((wordData, index) => {
-            const level = (page === 1 ? words.length - index : 5 - index); // Levels 10-6 for page 1, 5-1 for page 2
+            const level = (page === 1 ? words.length - index : 5 - index);
             const item = document.createElement('div');
             item.classList.add('word-item');
             item.innerHTML = `
@@ -181,8 +181,10 @@ function insertSyllable(syllable) {
         const hollow = hollowBlocksElement.children[emptyIndex];
         hollow.textContent = syllable;
         placedSyllables[emptyIndex] = syllable;
-        playSyllableHint(syllable, words[currentWordIndex].syllableAudios);
+        playSyllableHint(syllable, words[currentWordIndex].syllableAudios); // Play sound on tap
         checkCompletion();
+    } else {
+        interchangeSyllable(hollowBlocksElement.children[placedSyllables.length - 1]); // Auto-interchange if no empty slot
     }
 }
 
@@ -190,18 +192,19 @@ function interchangeSyllable(target) {
     const index = parseInt(target.dataset.index);
     if (placedSyllables[index]) {
         const syllable = placedSyllables[index];
-        const availableSyllable = prompt(`Enter a syllable to swap with ${syllable} (e.g., ${words[currentWordIndex].syllables.join(', ')}):`);
-        if (availableSyllable && words[currentWordIndex].syllables.includes(availableSyllable)) {
-            const newIndex = words[currentWordIndex].syllables.indexOf(availableSyllable);
-            if (placedSyllables[newIndex] === undefined) {
+        const availableSyllables = words[currentWordIndex].syllables.filter(s => !placedSyllables.includes(s) || s === syllable);
+        const newSyllable = prompt(`Enter a syllable to swap with ${syllable} (e.g., ${availableSyllables.join(', ')}):`);
+        if (newSyllable && words[currentWordIndex].syllables.includes(newSyllable)) {
+            const newIndex = placedSyllables.indexOf(newSyllable) !== -1 ? placedSyllables.indexOf(newSyllable) : placedSyllables.indexOf(undefined);
+            if (newIndex !== -1) {
                 placedSyllables[newIndex] = syllable;
                 hollowBlocksElement.children[newIndex].textContent = syllable;
-                placedSyllables[index] = availableSyllable;
-                target.textContent = availableSyllable;
-                playSyllableHint(availableSyllable, words[currentWordIndex].syllableAudios);
+                placedSyllables[index] = newSyllable;
+                target.textContent = newSyllable;
+                playSyllableHint(newSyllable, words[currentWordIndex].syllableAudios);
                 checkCompletion();
             } else {
-                alert("That syllable is already placed elsewhere!");
+                alert("No available slot to swap!");
             }
         } else {
             alert("Invalid syllable!");
@@ -236,7 +239,7 @@ function nextWord() {
     currentWordIndex++;
     if (currentWordIndex < words.length) {
         levelElement.textContent = currentWordIndex + 1; // Level 1 to 10
-        placedSyllables = []; // Reset for next level, but keep initial wrong order
+        placedSyllables = []; // Reset for next level
         loadWord();
     } else {
         showCongrats();
