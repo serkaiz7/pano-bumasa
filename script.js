@@ -43,10 +43,10 @@ const backButton = document.getElementById('backButton');
 const backButtonGameOver = document.getElementById('backButtonGameOver');
 const backButtonCongrats = document.getElementById('backButtonCongrats');
 
-const correctSound = new Audio('correct.wav');
-const wrongSound = new Audio('wrong.wav');
-const tickSound = new Audio('tick.wav');
-const clapSound = new Audio('clap.wav');
+const correctSound = new Audio('correct.mp3');
+const wrongSound = new Audio('wrong.mp3');
+const tickSound = new Audio('tick.mp3');
+const clapSound = new Audio('clap.mp3');
 
 // Pre-game setup
 window.onload = () => {
