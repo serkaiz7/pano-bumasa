@@ -8,7 +8,7 @@ body {
 }
 
 .game-container {
-    max-width: 800px;
+    max-width: 90vw;
     margin: 20px auto;
     padding: 20px;
     background: linear-gradient(135deg, #87ceeb, #98fb98);
@@ -18,13 +18,13 @@ body {
 
 h1 {
     color: #ff4500;
-    font-size: 32px;
+    font-size: 2.5em;
     text-shadow: 1px 1px 2px #fff;
     animation: bounce 2s infinite;
 }
 
 .level {
-    font-size: 20px;
+    font-size: 1.5em;
     color: #333;
     margin-bottom: 15px;
 }
@@ -42,15 +42,16 @@ h1 {
 }
 
 .word {
-    font-size: 28px;
+    font-size: 2em;
     color: #333;
     margin-bottom: 15px;
     cursor: pointer;
     transition: color 0.3s ease;
 }
 
-.word:hover {
+.word:hover, .word:focus {
     color: #ff4500;
+    outline: none;
 }
 
 .hollow-blocks {
@@ -58,6 +59,7 @@ h1 {
     justify-content: center;
     gap: 12px;
     margin-bottom: 20px;
+    flex-wrap: wrap;
 }
 
 .hollow-block {
@@ -68,7 +70,7 @@ h1 {
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 20px;
+    font-size: 1.5em;
     color: #ff4500;
     border-radius: 10px;
     transition: all 0.3s ease;
@@ -95,15 +97,16 @@ h1 {
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 24px;
+    font-size: 1.5em;
     cursor: grab;
     border-radius: 10px;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
     transition: transform 0.2s ease, opacity 0.2s ease;
 }
 
-.syllable-block:hover {
+.syllable-block:hover, .syllable-block:focus {
     transform: scale(1.1);
+    outline: none;
 }
 
 .syllable-block.dragging {
@@ -112,7 +115,7 @@ h1 {
 }
 
 .message {
-    font-size: 20px;
+    font-size: 1.5em;
     font-weight: bold;
     color: #ff4500;
     text-shadow: 1px 1px 2px #fff;
@@ -132,19 +135,20 @@ h1 {
     100% { transform: scale(1); }
 }
 
+/* Responsive Design */
 @media (max-width: 600px) {
     h1 {
-        font-size: 24px;
+        font-size: 1.8em;
     }
     .word {
-        font-size: 22px;
+        font-size: 1.5em;
     }
     .hollow-block, .syllable-block {
         width: 80px;
         height: 80px;
-        font-size: 18px;
+        font-size: 1.2em;
     }
     .level, .message {
-        font-size: 16px;
+        font-size: 1.2em;
     }
 }
