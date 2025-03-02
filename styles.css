@@ -77,13 +77,13 @@ body {
 }
 
 .word-item .word-text {
-    font-size: 1.3em; /* Increased for readability */
+    font-size: 1.3em;
     color: #333;
     text-align: center;
 }
 
 .word-item .syllables {
-    font-size: 1.2em; /* Increased for readability */
+    font-size: 1.2em;
     color: #666;
     margin-top: 5px;
 }
