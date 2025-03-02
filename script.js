@@ -110,7 +110,7 @@ function startTimer() {
     if (timer) clearInterval(timer);
     timer = setInterval(() => {
         timeLeft--;
-        const percentage = (timeLeft / 60) * 100; // Adjusted for 60 seconds
+        const percentage = (timeLeft / 35) * 100; // Adjusted for 60 seconds
         timerBar.style.width = `${percentage}%`;
         tickSound.play().catch(() => console.log('Tick sound failed to load'));
         if (timeLeft === 30) {
