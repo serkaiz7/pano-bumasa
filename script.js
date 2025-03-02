@@ -47,10 +47,6 @@ window.onload = () => {
         item.addEventListener('click', () => {
             const wordAudio = new Audio(wordData.audio);
             wordAudio.play().catch(() => console.log(`Word audio ${wordData.audio} failed to load`));
-            wordData.syllableAudios.forEach(syllableAudio => {
-                const audio = new Audio(syllableAudio);
-                audio.play().catch(() => console.log(`Syllable audio ${syllableAudio} failed to load`));
-            });
         });
         wordList.appendChild(item);
     });
@@ -110,8 +106,8 @@ function loadWord() {
         syllableBlocksElement.appendChild(block);
     });
 
-    // Hint on double-click or Enter key for word
-    wordDisplayElement.ondblclick = () => playWordHint(wordData);
+    // Hint on tap or Enter key for word
+    wordDisplayElement.onclick = () => playWordHint(wordData);
     wordDisplayElement.onkeydown = (e) => {
         if (e.key === 'Enter') playWordHint(wordData);
     };
@@ -167,7 +163,7 @@ function touchStart(e) {
     draggedElement.classList.add('dragging');
     const touch = e.touches[0];
     draggedElement.style.position = 'absolute';
-    draggedElement.style.left = `${touch.pageX - 30}px`; // Adjusted for smaller size
+    draggedElement.style.left = `${touch.pageX - 30}px`;
     draggedElement.style.top = `${touch.pageY - 30}px`;
 }
 
