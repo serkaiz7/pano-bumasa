@@ -16,8 +16,7 @@ let placedSyllables = [];
 let timer = null;
 let timeLeft = 35;
 let score = 0;
-let correctLevels = [];
-let wrongLevels = [];
+let wrongAnswers = [];
 
 const levelElement = document.getElementById('level');
 const wordImageElement = document.getElementById('wordImage');
@@ -37,8 +36,7 @@ const wordList = document.getElementById('wordList');
 const page1Button = document.getElementById('page1Button');
 const page2Button = document.getElementById('page2Button');
 const finalScore = document.getElementById('finalScore');
-const correctLevelsDisplay = document.getElementById('correctLevels');
-const wrongLevelsDisplay = document.getElementById('wrongLevels');
+const wrongLevels = document.getElementById('wrongLevels');
 
 const correctSound = new Audio('correct.mp3');
 const wrongSound = new Audio('wrong.mp3');
@@ -203,7 +201,7 @@ function touchStart(e) {
     draggedElement.classList.add('dragging');
     const touch = e.touches[0];
     draggedElement.style.position = 'absolute';
-    draggedElement.style.left = `${touch.pageX - 25}px`; // Adjusted for smaller size
+    draggedElement.style.left = `${touch.pageX - 25}px`;
     draggedElement.style.top = `${touch.pageY - 25}px`;
 }
 
@@ -234,46 +232,35 @@ function touchEnd(e) {
 function handleDrop(target, syllable) {
     const index = parseInt(target.dataset.index);
     const expected = target.dataset.expected;
-    target.textContent = syllable; // Allow wrong syllables
-    if (syllable === expected) {
-        target.classList.add('filled');
-        if (!placedSyllables[index]) {
-            placedSyllables[index] = syllable;
-            const draggedBlock = Array.from(syllableBlocksElement.children).find(block => block.textContent === syllable);
-            if (draggedBlock) draggedBlock.remove();
-            // Play the syllable sound when correctly placed
-            const syllableIndex = words[currentWordIndex].syllables.indexOf(syllable);
-            if (syllableIndex !== -1) {
-                const syllableAudio = new Audio(words[currentWordIndex].syllableAudios[syllableIndex]);
-                syllableAudio.play().catch(() => console.log(`Syllable audio ${words[currentWordIndex].syllableAudios[syllableIndex]} failed to load`));
-            }
+    target.textContent = syllable; // Allow any syllable placement
+    if (!placedSyllables[index]) {
+        placedSyllables[index] = syllable;
+        const draggedBlock = Array.from(syllableBlocksElement.children).find(block => block.textContent === syllable);
+        if (draggedBlock) draggedBlock.remove();
+        if (syllable === expected) {
             correctSound.play().catch(() => console.log('Correct sound failed to load'));
-
-            // Check if all hollow blocks are correctly filled in order
-            const allFilled = Array.from(hollowBlocksElement.children).every((block, i) => {
-                return placedSyllables[i] === words[currentWordIndex].syllables[i];
-            });
-            if (allFilled && placedSyllables.length === words[currentWordIndex].syllables.length) {
-                clearInterval(timer);
-                score++;
-                correctLevels.push(currentWordIndex + 1);
-                const wordAudio = new Audio(words[currentWordIndex].audio);
-                wordAudio.play().catch(() => console.log('Word audio failed to load'));
-                messageElement.textContent = "Correct!";
-                messageElement.style.color = '#32cd32';
-                setTimeout(nextWord, 2000);
-            }
-        }
-    } else {
-        if (!placedSyllables[index]) {
-            placedSyllables[index] = syllable; // Allow wrong placement
+        } else {
             wrongSound.play().catch(() => console.log('Wrong sound failed to load'));
-            wrongLevels.push(currentWordIndex + 1);
         }
-        messageElement.textContent = "Wrong!";
-        messageElement.style.color = '#ff4500';
-        target.style.borderColor = '#ff0000';
-        setTimeout(() => target.style.borderColor = '#ff4500', 500);
+
+        // Proceed to next level regardless of correctness
+        if (placedSyllables.length === words[currentWordIndex].syllables.length) {
+            clearInterval(timer);
+            if (placedSyllables.every((s, i) => s === words[currentWordIndex].syllables[i])) {
+                score++;
+            } else {
+                wrongAnswers.push({
+                    level: currentWordIndex + 1,
+                    wrongOrder: [...placedSyllables],
+                    correctOrder: [...words[currentWordIndex].syllables]
+                });
+            }
+            const wordAudio = new Audio(words[currentWordIndex].audio);
+            wordAudio.play().catch(() => console.log('Word audio failed to load'));
+            messageElement.textContent = "Next Level!";
+            messageElement.style.color = '#32cd32';
+            setTimeout(nextWord, 2000);
+        }
     }
 }
 
@@ -281,6 +268,7 @@ function nextWord() {
     currentWordIndex++;
     if (currentWordIndex < words.length) {
         levelElement.textContent = currentWordIndex + 1; // Level 1 to 10
+        placedSyllables = []; // Reset for next level
         loadWord();
     } else {
         showCongrats();
@@ -318,8 +306,9 @@ function showCongrats() {
     }
     clapSound.play().catch(() => console.log('Clap sound failed to load'));
     finalScore.textContent = `${score}/10`;
-    correctLevelsDisplay.textContent = correctLevels.join(', ') || 'None';
-    wrongLevelsDisplay.textContent = wrongLevels.join(', ') || 'None';
+    wrongLevels.innerHTML = wrongAnswers.map(w => 
+        `<p>Level ${w.level}: Wrong: ${w.wrongOrder.join(' + ')}, Correct: ${w.correctOrder.join(' + ')}</p>`
+    ).join('');
     messageElement.textContent = 'Test Completed!';
     messageElement.style.color = '#32cd32';
 }
@@ -328,8 +317,8 @@ retryButton.addEventListener('click', () => {
     gameOverOverlay.style.display = 'none';
     currentWordIndex = 0;
     score = 0;
-    correctLevels = [];
-    wrongLevels = [];
+    wrongAnswers = [];
+    placedSyllables = [];
     loadWord();
 });
 
@@ -337,8 +326,8 @@ retryCongratsButton.addEventListener('click', () => {
     congratsOverlay.style.display = 'none';
     currentWordIndex = 0;
     score = 0;
-    correctLevels = [];
-    wrongLevels = [];
+    wrongAnswers = [];
+    placedSyllables = [];
     loadWord();
 });
 
