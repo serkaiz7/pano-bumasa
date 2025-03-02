@@ -14,7 +14,7 @@ const words = [
 let currentWordIndex = 0;
 let placedSyllables = [];
 let timer = null;
-let timeLeft = 30;
+let timeLeft = 60; // Increased to 60 seconds
 
 const levelElement = document.getElementById('level');
 const wordImageElement = document.getElementById('wordImage');
@@ -28,6 +28,7 @@ const gameOverOverlay = document.getElementById('gameOverOverlay');
 const retryButton = document.getElementById('retryButton');
 const congratsOverlay = document.getElementById('congratsOverlay');
 const retryCongratsButton = document.getElementById('retryCongratsButton');
+const hintOverlay = document.getElementById('hintOverlay');
 
 const correctSound = new Audio('correct.mp3');
 const wrongSound = new Audio('wrong.mp3');
@@ -45,11 +46,12 @@ function loadWord() {
     syllableBlocksElement.innerHTML = '';
     placedSyllables = [];
     messageElement.textContent = '';
+    hintOverlay.style.display = 'none'; // Hide hint overlay on new word
 
-    // Show timer for Levels 2 and 3 (now words 2-10)
+    // Show timer for Levels 2 to 10 (words 2-10)
     if (currentWordIndex > 0) {
         timerContainer.style.display = 'block';
-        timeLeft = 30;
+        timeLeft = 60; // Set to 60 seconds
         timerBar.style.width = '100%';
         startTimer();
     } else {
@@ -75,8 +77,7 @@ function loadWord() {
         block.textContent = syllable;
         block.setAttribute('draggable', true);
         block.addEventListener('dragstart', dragStart);
-        block.addEventListener('dragend', dragEnd);
-        block.addEventListener('touchstart', touchStart);
+        block.addEventListener('touchstart', touchStart); // Immediate drag on touch
         block.addEventListener('touchmove', touchMove);
         block.addEventListener('touchend', touchEnd);
         block.addEventListener('dblclick', () => playSyllableHint(syllable, wordData.syllableAudios));
@@ -109,9 +110,12 @@ function startTimer() {
     if (timer) clearInterval(timer);
     timer = setInterval(() => {
         timeLeft--;
-        const percentage = (timeLeft / 30) * 100;
+        const percentage = (timeLeft / 60) * 100; // Adjusted for 60 seconds
         timerBar.style.width = `${percentage}%`;
         tickSound.play().catch(() => console.log('Tick sound failed to load'));
+        if (timeLeft === 30) {
+            hintOverlay.style.display = 'block'; // Show hint at 30 seconds
+        }
         if (timeLeft <= 0) {
             clearInterval(timer);
             gameOver();
@@ -121,11 +125,7 @@ function startTimer() {
 
 function dragStart(e) {
     e.dataTransfer.setData('text/plain', e.target.textContent);
-    setTimeout(() => e.target.classList.add('dragging'), 0);
-}
-
-function dragEnd(e) {
-    e.target.classList.remove('dragging');
+    e.target.classList.add('dragging');
 }
 
 function dragOver(e) {
@@ -142,15 +142,20 @@ let draggedElement = null;
 
 function touchStart(e) {
     draggedElement = e.target;
-    e.target.classList.add('dragging');
+    draggedElement.classList.add('dragging');
+    const touch = e.touches[0];
+    draggedElement.style.position = 'absolute';
+    draggedElement.style.left = `${touch.pageX - 50}px`;
+    draggedElement.style.top = `${touch.pageY - 50}px`;
 }
 
 function touchMove(e) {
     e.preventDefault();
     const touch = e.touches[0];
-    draggedElement.style.position = 'absolute';
-    draggedElement.style.left = `${touch.pageX - 50}px`;
-    draggedElement.style.top = `${touch.pageY - 50}px`;
+    if (draggedElement) {
+        draggedElement.style.left = `${touch.pageX - 50}px`;
+        draggedElement.style.top = `${touch.pageY - 50}px`;
+    }
 }
 
 function touchEnd(e) {
@@ -159,11 +164,13 @@ function touchEnd(e) {
     if (dropTarget && dropTarget.classList.contains('hollow-block')) {
         handleDrop(dropTarget, draggedElement.textContent);
     }
-    draggedElement.classList.remove('dragging');
-    draggedElement.style.position = '';
-    draggedElement.style.left = '';
-    draggedElement.style.top = '';
-    draggedElement = null;
+    if (draggedElement) {
+        draggedElement.classList.remove('dragging');
+        draggedElement.style.position = '';
+        draggedElement.style.left = '';
+        draggedElement.style.top = '';
+        draggedElement = null;
+    }
 }
 
 function handleDrop(target, syllable) {
@@ -178,6 +185,7 @@ function handleDrop(target, syllable) {
             if (draggedBlock) draggedBlock.remove();
             correctSound.play().catch(() => console.log('Correct sound failed to load'));
 
+            // Check if all syllables are correctly placed in order
             if (placedSyllables.length === words[currentWordIndex].syllables.length &&
                 placedSyllables.every((s, i) => s === words[currentWordIndex].syllables[i])) {
                 clearInterval(timer);
@@ -200,7 +208,7 @@ function handleDrop(target, syllable) {
 function nextWord() {
     currentWordIndex++;
     if (currentWordIndex < words.length) {
-        levelElement.textContent = currentWordIndex + 1; // Update level to next word (1 to 10)
+        levelElement.textContent = currentWordIndex + 1; // Level 1 to 10
         loadWord();
     } else {
         showCongrats();
