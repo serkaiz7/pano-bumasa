@@ -14,7 +14,7 @@ const words = [
 let currentWordIndex = 0;
 let placedSyllables = [];
 let timer = null;
-let timeLeft = 30; // 30 seconds per level (Levels 2 and 3)
+let timeLeft = 30;
 
 const levelElement = document.getElementById('level');
 const wordImageElement = document.getElementById('wordImage');
@@ -50,7 +50,7 @@ function loadWord() {
     // Show timer for Levels 2 and 3
     if (level > 1) {
         timerContainer.style.display = 'block';
-        timeLeft = 30; // Reset timer to 30 seconds
+        timeLeft = 30;
         timerBar.style.width = '100%';
         startTimer();
     } else {
@@ -80,28 +80,29 @@ function loadWord() {
         block.addEventListener('touchstart', touchStart);
         block.addEventListener('touchmove', touchMove);
         block.addEventListener('touchend', touchEnd);
+        block.addEventListener('dblclick', () => playSyllableSound(block.textContent, wordData.syllableAudios));
         block.tabIndex = 0;
         syllableBlocksElement.appendChild(block);
     });
 
-    // Hint on double-click or Enter key
-    wordDisplayElement.ondblclick = playHint;
+    // Hint on double-click or Enter key for word
+    wordDisplayElement.ondblclick = () => playHint(wordData);
     wordDisplayElement.onkeydown = (e) => {
-        if (e.key === 'Enter') playHint();
+        if (e.key === 'Enter') playHint(wordData);
     };
 }
 
-function playHint() {
-    const wordData = words[currentWordIndex];
+function playHint(wordData) {
     const wordAudio = new Audio(wordData.audio);
     wordAudio.play().catch(() => console.log('Word audio failed to load'));
-    wordData.syllableAudios.forEach((syllableAudio, index) => {
-        setTimeout(() => {
-            const audio = new Audio(syllableAudio);
-            audio.play().catch(() => console.log(`Syllable audio ${syllableAudio} failed to load`));
-        }, index * 500);
-    });
-    highlightNextSyllable();
+}
+
+function playSyllableSound(syllable, syllableAudios) {
+    const index = words[currentWordIndex].syllables.indexOf(syllable);
+    if (index !== -1) {
+        const audio = new Audio(syllableAudios[index]);
+        audio.play().catch(() => console.log(`Syllable audio ${syllableAudios[index]} failed to load`));
+    }
 }
 
 function startTimer() {
@@ -179,7 +180,7 @@ function handleDrop(target, syllable) {
 
             if (placedSyllables.length === words[currentWordIndex].syllables.length &&
                 placedSyllables.every((s, i) => s === words[currentWordIndex].syllables[i])) {
-                clearInterval(timer); // Stop timer on completion
+                clearInterval(timer);
                 const wordAudio = new Audio(words[currentWordIndex].audio);
                 wordAudio.play().catch(() => console.log('Word audio failed to load'));
                 messageElement.textContent = "Correct!";
