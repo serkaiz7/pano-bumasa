@@ -11,6 +11,9 @@ const words = [
     { word: "palengke", syllables: ["pa", "leng", "ke"], image: "palengke.jpg", audio: "palengke.wav", syllableAudios: ["pa.wav", "leng.wav", "ke.wav"] }
 ];
 
+// Shuffle words randomly
+words.sort(() => Math.random() - 0.5);
+
 let currentWordIndex = 0;
 let placedSyllables = [];
 let initialPlacedSyllables = [];
@@ -19,9 +22,7 @@ let timeLeft = 35;
 let score = 0;
 let wrongAnswers = [];
 
-const levelElement = document.getElementById('level');
 const wordImageElement = document.getElementById('wordImage');
-const wordDisplayElement = document.getElementById('wordDisplay');
 const hollowBlocksElement = document.getElementById('hollowBlocks');
 const syllableBlocksElement = document.getElementById('syllableBlocks');
 const messageElement = document.getElementById('message');
@@ -98,18 +99,20 @@ window.onload = () => {
 
 function loadWord() {
     const wordData = words[currentWordIndex];
-    levelElement.textContent = currentWordIndex + 1; // Level 1 to 10 based on word index
     wordImageElement.src = wordData.image;
     wordImageElement.style.transform = 'scale(0)';
-    setTimeout(() => wordImageElement.style.transform = 'scale(1)', 100);
-    wordDisplayElement.textContent = wordData.word;
+    setTimeout(() => {
+        wordImageElement.style.transform = 'scale(1)';
+        const wordAudio = new Audio(wordData.audio);
+        wordAudio.play().catch(() => console.log('Word audio failed to load'));
+    }, 100);
     hollowBlocksElement.innerHTML = '';
     syllableBlocksElement.innerHTML = '';
     placedSyllables = [];
     initialPlacedSyllables = []; // Reset initial order
     messageElement.textContent = '';
 
-    // Show timer for Levels 2 to 10 (words 2-10)
+    // Show timer for all levels except the first (randomized)
     if (currentWordIndex > 0) {
         timerContainer.style.display = 'block';
         timeLeft = 35;
@@ -140,8 +143,8 @@ function loadWord() {
         syllableBlocksElement.appendChild(block);
     });
 
-    // Hint on tap or Enter key for word
-    wordDisplayElement.onclick = () => playWordHint(wordData);
+    // Hint on tap or Enter key for word (via image)
+    wordImageElement.onclick = () => playWordHint(wordData);
     wordDisplayElement.onkeydown = (e) => {
         if (e.key === 'Enter') playWordHint(wordData);
     };
@@ -203,7 +206,6 @@ function interchangeSyllable(target) {
             const newIndex = placedSyllables.indexOf(newSyllable) !== -1 ? placedSyllables.indexOf(newSyllable) : placedSyllables.indexOf(undefined);
             if (newIndex !== -1 || !placedSyllables.includes(newSyllable)) {
                 if (newIndex === -1) {
-                    // Find the next empty slot if newSyllable isn't placed
                     for (let i = 0; i < hollowBlocksElement.children.length; i++) {
                         if (!placedSyllables[i]) {
                             newIndex = i;
@@ -252,7 +254,6 @@ function checkCompletion() {
 function nextWord() {
     currentWordIndex++;
     if (currentWordIndex < words.length) {
-        levelElement.textContent = currentWordIndex + 1; // Level 1 to 10
         placedSyllables = []; // Reset for next level
         loadWord();
     } else {
