@@ -13,6 +13,7 @@ const words = [
 
 let currentWordIndex = 0;
 let placedSyllables = [];
+let initialPlacedSyllables = []; // To record initial wrong order
 let timer = null;
 let timeLeft = 35;
 let score = 0;
@@ -105,6 +106,7 @@ function loadWord() {
     hollowBlocksElement.innerHTML = '';
     syllableBlocksElement.innerHTML = '';
     placedSyllables = [];
+    initialPlacedSyllables = []; // Reset initial order
     messageElement.textContent = '';
 
     // Show timer for Levels 2 to 10 (words 2-10)
@@ -123,23 +125,17 @@ function loadWord() {
         hollow.classList.add('hollow-block');
         hollow.dataset.index = index;
         hollow.dataset.expected = syllable;
-        hollow.addEventListener('dragover', dragOver);
-        hollow.addEventListener('drop', drop);
+        hollow.addEventListener('click', () => interchangeSyllable(hollow));
         hollowBlocksElement.appendChild(hollow);
     });
 
-    // Create draggable syllable blocks
+    // Create tappable syllable blocks
     const shuffledSyllables = [...wordData.syllables].sort(() => Math.random() - 0.5);
     shuffledSyllables.forEach(syllable => {
         const block = document.createElement('div');
         block.classList.add('syllable-block');
         block.textContent = syllable;
-        block.setAttribute('draggable', true);
-        block.addEventListener('dragstart', dragStart);
-        block.addEventListener('touchstart', touchStart);
-        block.addEventListener('touchmove', touchMove);
-        block.addEventListener('touchend', touchEnd);
-        block.addEventListener('click', () => playSyllableHint(syllable, wordData.syllableAudios));
+        block.addEventListener('click', () => insertSyllable(syllable));
         block.tabIndex = 0;
         syllableBlocksElement.appendChild(block);
     });
@@ -179,88 +175,60 @@ function startTimer() {
     }, 1000);
 }
 
-function dragStart(e) {
-    e.dataTransfer.setData('text/plain', e.target.textContent);
-    e.target.classList.add('dragging');
-}
-
-function dragOver(e) {
-    e.preventDefault();
-}
-
-function drop(e) {
-    e.preventDefault();
-    const syllable = e.dataTransfer.getData('text/plain');
-    handleDrop(e.target, syllable);
-}
-
-let draggedElement = null;
-
-function touchStart(e) {
-    draggedElement = e.target;
-    draggedElement.classList.add('dragging');
-    const touch = e.touches[0];
-    draggedElement.style.position = 'absolute';
-    draggedElement.style.left = `${touch.pageX - 25}px`;
-    draggedElement.style.top = `${touch.pageY - 25}px`;
-}
-
-function touchMove(e) {
-    e.preventDefault();
-    const touch = e.touches[0];
-    if (draggedElement) {
-        draggedElement.style.left = `${touch.pageX - 25}px`;
-        draggedElement.style.top = `${touch.pageY - 25}px`;
+function insertSyllable(syllable) {
+    const emptyIndex = placedSyllables.indexOf(undefined);
+    if (emptyIndex !== -1) {
+        const hollow = hollowBlocksElement.children[emptyIndex];
+        hollow.textContent = syllable;
+        placedSyllables[emptyIndex] = syllable;
+        playSyllableHint(syllable, words[currentWordIndex].syllableAudios);
+        checkCompletion();
     }
 }
 
-function touchEnd(e) {
-    const touch = e.changedTouches[0];
-    const dropTarget = document.elementFromPoint(touch.clientX, touch.clientY);
-    if (dropTarget && dropTarget.classList.contains('hollow-block')) {
-        handleDrop(dropTarget, draggedElement.textContent);
-    }
-    if (draggedElement) {
-        draggedElement.classList.remove('dragging');
-        draggedElement.style.position = '';
-        draggedElement.style.left = '';
-        draggedElement.style.top = '';
-        draggedElement = null;
-    }
-}
-
-function handleDrop(target, syllable) {
+function interchangeSyllable(target) {
     const index = parseInt(target.dataset.index);
-    const expected = target.dataset.expected;
-    target.textContent = syllable; // Allow any syllable placement
-    if (!placedSyllables[index]) {
-        placedSyllables[index] = syllable;
-        const draggedBlock = Array.from(syllableBlocksElement.children).find(block => block.textContent === syllable);
-        if (draggedBlock) draggedBlock.remove();
-        if (syllable === expected) {
-            correctSound.play().catch(() => console.log('Correct sound failed to load'));
-        } else {
-            wrongSound.play().catch(() => console.log('Wrong sound failed to load'));
-        }
-
-        // Proceed to next level regardless of correctness
-        if (placedSyllables.length === words[currentWordIndex].syllables.length) {
-            clearInterval(timer);
-            if (placedSyllables.every((s, i) => s === words[currentWordIndex].syllables[i])) {
-                score++;
+    if (placedSyllables[index]) {
+        const syllable = placedSyllables[index];
+        const availableSyllable = prompt(`Enter a syllable to swap with ${syllable} (e.g., ${words[currentWordIndex].syllables.join(', ')}):`);
+        if (availableSyllable && words[currentWordIndex].syllables.includes(availableSyllable)) {
+            const newIndex = words[currentWordIndex].syllables.indexOf(availableSyllable);
+            if (placedSyllables[newIndex] === undefined) {
+                placedSyllables[newIndex] = syllable;
+                hollowBlocksElement.children[newIndex].textContent = syllable;
+                placedSyllables[index] = availableSyllable;
+                target.textContent = availableSyllable;
+                playSyllableHint(availableSyllable, words[currentWordIndex].syllableAudios);
+                checkCompletion();
             } else {
-                wrongAnswers.push({
-                    level: currentWordIndex + 1,
-                    wrongOrder: [...placedSyllables],
-                    correctOrder: [...words[currentWordIndex].syllables]
-                });
+                alert("That syllable is already placed elsewhere!");
             }
-            const wordAudio = new Audio(words[currentWordIndex].audio);
-            wordAudio.play().catch(() => console.log('Word audio failed to load'));
-            messageElement.textContent = "Next Level!";
-            messageElement.style.color = '#32cd32';
-            setTimeout(nextWord, 2000);
+        } else {
+            alert("Invalid syllable!");
         }
+    }
+}
+
+function checkCompletion() {
+    if (placedSyllables.length === words[currentWordIndex].syllables.length) {
+        clearInterval(timer);
+        if (!initialPlacedSyllables.length) {
+            initialPlacedSyllables = [...placedSyllables]; // Record initial order
+        }
+        if (placedSyllables.every((s, i) => s === words[currentWordIndex].syllables[i])) {
+            score++;
+        } else if (!wrongAnswers.some(w => w.level === currentWordIndex + 1)) {
+            wrongAnswers.push({
+                level: currentWordIndex + 1,
+                wrongOrder: [...initialPlacedSyllables],
+                correctOrder: [...words[currentWordIndex].syllables]
+            });
+        }
+        const wordAudio = new Audio(words[currentWordIndex].audio);
+        wordAudio.play().catch(() => console.log('Word audio failed to load'));
+        messageElement.textContent = "Next Level!";
+        messageElement.style.color = '#32cd32';
+        setTimeout(nextWord, 2000);
     }
 }
 
@@ -268,7 +236,7 @@ function nextWord() {
     currentWordIndex++;
     if (currentWordIndex < words.length) {
         levelElement.textContent = currentWordIndex + 1; // Level 1 to 10
-        placedSyllables = []; // Reset for next level
+        placedSyllables = []; // Reset for next level, but keep initial wrong order
         loadWord();
     } else {
         showCongrats();
@@ -319,6 +287,7 @@ retryButton.addEventListener('click', () => {
     score = 0;
     wrongAnswers = [];
     placedSyllables = [];
+    initialPlacedSyllables = [];
     loadWord();
 });
 
@@ -328,6 +297,7 @@ retryCongratsButton.addEventListener('click', () => {
     score = 0;
     wrongAnswers = [];
     placedSyllables = [];
+    initialPlacedSyllables = [];
     loadWord();
 });
 
