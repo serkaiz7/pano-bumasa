@@ -6,7 +6,7 @@ const words = [
     // Level 2: 4-syllable words
     { word: "guwardiya", syllables: ["gu", "war", "di", "ya"], image: "guwardiya.jpg", audio: "guwardiya.mp3" },
     { word: "estudyante", syllables: ["es", "tu", "dyan", "te"], image: "estudyante.jpg", audio: "estudyante.mp3" },
-    { word: "empleado", syllables: ["em", "ple", "ya", "do"], image: "empleado.jpg", audio: "empleado.mp3" },
+    { word: "empleyado", syllables: ["em", "ple", "ya", "do"], image: "empleyado.jpg", audio: "empleyado.mp3" },
     { word: "tanghalian", syllables: ["tang", "ha", "li", "an"], image: "tanghalian.jpg", audio: "tanghalian.mp3" },
     { word: "munisipyo", syllables: ["mu", "ni", "si", "pyo"], image: "munisipyo.jpg", audio: "munisipyo.mp3" },
     { word: "paborito", syllables: ["pa", "bo", "ri", "to"], image: "paborito.jpg", audio: "paborito.mp3" },
