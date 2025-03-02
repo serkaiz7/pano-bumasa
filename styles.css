@@ -22,9 +22,9 @@ body {
 
 .pregame-content {
     background-color: #fff;
-    padding: 15px;
-    border-radius: 10px;
-    box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+    padding: 10px;
+    border-radius: 8px;
+    box-shadow: 0 0 8px rgba(0, 0, 0, 0.5);
     width: 90%;
     max-height: 80vh;
     overflow-y: auto;
@@ -32,16 +32,36 @@ body {
 
 .pregame-content h1 {
     color: #ff4500;
-    font-size: 1.5em;
+    font-size: 1.3em;
     margin-bottom: 10px;
 }
 
+.page-buttons {
+    margin-bottom: 10px;
+}
+
+.page-buttons button {
+    padding: 5px 10px;
+    font-size: 1em;
+    background-color: #ff4500;
+    color: #fff;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    margin: 0 5px;
+}
+
+.page-buttons button.active {
+    background-color: #ff6347;
+}
+
 .word-list {
-    margin-bottom: 15px;
+    margin-bottom: 10px;
 }
 
 .word-item {
     display: flex;
+    flex-direction: column;
     align-items: center;
     margin: 10px 0;
     padding: 5px;
@@ -50,15 +70,22 @@ body {
 }
 
 .word-item img {
-    width: 50px;
-    height: 50px;
-    margin-right: 10px;
+    width: 40px;
+    height: 40px;
+    margin-bottom: 5px;
     border-radius: 5px;
 }
 
-.word-item span {
-    font-size: 1em;
+.word-item .word-text {
+    font-size: 1.1em;
     color: #333;
+    text-align: center;
+}
+
+.word-item .syllables {
+    font-size: 1em;
+    color: #666;
+    margin-top: 5px;
 }
 
 #nextButton {
@@ -81,7 +108,7 @@ body {
     margin: 10px;
     padding: 10px;
     background: linear-gradient(135deg, #87ceeb, #98fb98);
-    border-radius: 10px;
+    border-radius: 8px;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
     position: relative;
     z-index: 1;
@@ -98,12 +125,12 @@ h1 {
 .level {
     font-size: 1em;
     color: #333;
-    margin-bottom: 10px;
+    margin-bottom: 5px;
 }
 
 .timer-container {
     width: 90%;
-    height: 15px;
+    height: 12px;
     background-color: #ddd;
     border-radius: 5px;
     margin: 5px auto;
@@ -121,7 +148,7 @@ h1 {
     max-width: 100%;
     height: auto;
     border-radius: 5px;
-    margin-bottom: 10px;
+    margin-bottom: 5px;
     transition: transform 0.3s ease;
 }
 
@@ -132,7 +159,7 @@ h1 {
 .word {
     font-size: 1.2em;
     color: #333;
-    margin-bottom: 10px;
+    margin-bottom: 5px;
     cursor: pointer;
     transition: color 0.3s ease;
 }
@@ -145,20 +172,20 @@ h1 {
 .hollow-blocks {
     display: flex;
     justify-content: center;
-    gap: 8px;
-    margin-bottom: 10px;
+    gap: 6px;
+    margin-bottom: 5px;
     flex-wrap: wrap;
 }
 
 .hollow-block {
-    width: 60px;
-    height: 60px;
+    width: 50px;
+    height: 50px;
     border: 2px dashed #ff4500;
     background-color: #fff;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 1em;
+    font-size: 0.9em;
     color: #ff4500;
     border-radius: 5px;
     transition: all 0.3s ease;
@@ -174,18 +201,18 @@ h1 {
     display: flex;
     flex-wrap: wrap;
     justify-content: center;
-    gap: 8px;
-    margin-bottom: 10px;
+    gap: 6px;
+    margin-bottom: 5px;
 }
 
 .syllable-block {
-    width: 60px;
-    height: 60px;
+    width: 50px;
+    height: 50px;
     background-color: #ffd700;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 1em;
+    font-size: 0.9em;
     cursor: grab;
     border-radius: 5px;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
@@ -225,21 +252,21 @@ h1 {
 
 .game-over-popup {
     background-color: #fff;
-    padding: 15px;
-    border-radius: 10px;
-    box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+    padding: 10px;
+    border-radius: 8px;
+    box-shadow: 0 0 8px rgba(0, 0, 0, 0.5);
     text-align: center;
     width: 80%;
 }
 
 .game-over-popup h2 {
     color: #ff0000;
-    font-size: 1.5em;
+    font-size: 1.3em;
 }
 
 .game-over-popup button {
-    padding: 8px 15px;
-    font-size: 1em;
+    padding: 6px 12px;
+    font-size: 0.9em;
     background-color: #ff4500;
     color: #fff;
     border: none;
@@ -267,9 +294,9 @@ h1 {
 
 .congrats-popup {
     background-color: #fff;
-    padding: 15px;
-    border-radius: 10px;
-    box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+    padding: 10px;
+    border-radius: 8px;
+    box-shadow: 0 0 8px rgba(0, 0, 0, 0.5);
     text-align: center;
     animation: fadeIn 1s;
     width: 80%;
@@ -277,18 +304,23 @@ h1 {
 
 .congrats-popup h2 {
     color: #32cd32;
-    font-size: 1.8em;
+    font-size: 1.5em;
+}
+
+.congrats-popup p {
+    font-size: 0.9em;
+    margin: 5px 0;
 }
 
 .congrats-popup button {
-    padding: 8px 15px;
-    font-size: 1em;
+    padding: 6px 12px;
+    font-size: 0.9em;
     background-color: #ff4500;
     color: #fff;
     border: none;
     border-radius: 5px;
     cursor: pointer;
-    margin-top: 10px;
+    margin-top: 5px;
     transition: background-color 0.3s;
 }
 
@@ -298,16 +330,16 @@ h1 {
 
 .congrats-overlay .confetti {
     position: absolute;
-    width: 8px;
-    height: 8px;
+    width: 6px;
+    height: 6px;
     background-color: #ff4500;
     animation: fall 2s infinite;
 }
 
 @keyframes bounce {
     0%, 20%, 50%, 80%, 100% { transform: translateY(0); }
-    40% { transform: translateY(-10px); }
-    60% { transform: translateY(-5px); }
+    40% { transform: translateY(-8px); }
+    60% { transform: translateY(-4px); }
 }
 
 @keyframes pop {
@@ -332,10 +364,10 @@ h1 {
         padding: 5px;
     }
     .word-item img {
-        width: 40px;
-        height: 40px;
+        width: 35px;
+        height: 35px;
     }
-    .word-item span {
-        font-size: 0.9em;
+    .word-item .word-text, .word-item .syllables {
+        font-size: 0.8em;
     }
 }
