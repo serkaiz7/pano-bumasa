@@ -27,6 +27,7 @@ const timerBar = document.getElementById('timerBar');
 const gameOverOverlay = document.getElementById('gameOverOverlay');
 const retryButton = document.getElementById('retryButton');
 const congratsOverlay = document.getElementById('congratsOverlay');
+const retryCongratsButton = document.getElementById('retryCongratsButton');
 
 const correctSound = new Audio('correct.mp3');
 const wrongSound = new Audio('wrong.mp3');
@@ -35,9 +36,7 @@ const clapSound = new Audio('clap.mp3');
 
 function loadWord() {
     const wordData = words[currentWordIndex];
-    const syllableCount = wordData.syllables.length;
-    let level = syllableCount <= 3 ? 1 : syllableCount <= 4 ? 2 : 3;
-    levelElement.textContent = level;
+    levelElement.textContent = currentWordIndex + 1; // Level 1 to 10 based on word index
     wordImageElement.src = wordData.image;
     wordImageElement.style.transform = 'scale(0)';
     setTimeout(() => wordImageElement.style.transform = 'scale(1)', 100);
@@ -47,8 +46,8 @@ function loadWord() {
     placedSyllables = [];
     messageElement.textContent = '';
 
-    // Show timer for Levels 2 and 3
-    if (level > 1) {
+    // Show timer for Levels 2 and 3 (now words 2-10)
+    if (currentWordIndex > 0) {
         timerContainer.style.display = 'block';
         timeLeft = 30;
         timerBar.style.width = '100%';
@@ -80,7 +79,7 @@ function loadWord() {
         block.addEventListener('touchstart', touchStart);
         block.addEventListener('touchmove', touchMove);
         block.addEventListener('touchend', touchEnd);
-        block.addEventListener('dblclick', () => playSyllableHint(syllable, words[currentWordIndex].syllableAudios));
+        block.addEventListener('dblclick', () => playSyllableHint(syllable, wordData.syllableAudios));
         block.tabIndex = 0;
         syllableBlocksElement.appendChild(block);
     });
@@ -201,11 +200,7 @@ function handleDrop(target, syllable) {
 function nextWord() {
     currentWordIndex++;
     if (currentWordIndex < words.length) {
-        const nextWordData = words[currentWordIndex];
-        let nextLevel = nextWordData.syllables.length <= 3 ? 1 : nextWordData.syllables.length <= 4 ? 2 : 3;
-        if (nextLevel > parseInt(levelElement.textContent)) {
-            levelElement.textContent = nextLevel;
-        }
+        levelElement.textContent = currentWordIndex + 1; // Update level to next word (1 to 10)
         loadWord();
     } else {
         showCongrats();
@@ -248,6 +243,12 @@ function showCongrats() {
 
 retryButton.addEventListener('click', () => {
     gameOverOverlay.style.display = 'none';
+    currentWordIndex = 0;
+    loadWord();
+});
+
+retryCongratsButton.addEventListener('click', () => {
+    congratsOverlay.style.display = 'none';
     currentWordIndex = 0;
     loadWord();
 });
