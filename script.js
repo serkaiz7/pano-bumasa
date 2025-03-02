@@ -1,14 +1,14 @@
 const words = [
-    { word: "palengke", syllables: ["pa", "leng", "ke"], image: "palengke.jpg", audio: "palengke.wav", syllableAudios: ["pa.wav", "leng.wav", "ke.wav"] },
-    { word: "ospital", syllables: ["os", "pi", "tal"], image: "ospital.jpg", audio: "ospital.wav", syllableAudios: ["os.wav", "pi.wav", "tal.wav"] },
-    { word: "guwardiya", syllables: ["gu", "war", "di", "ya"], image: "guwardiya.jpg", audio: "guwardiya.wav", syllableAudios: ["gu.wav", "war.wav", "di.wav", "ya.wav"] },
-    { word: "estudyante", syllables: ["es", "tu", "dyan", "te"], image: "estudyante.jpg", audio: "estudyante.wav", syllableAudios: ["es.wav", "tu.wav", "dyan.wav", "te.wav"] },
-    { word: "manggagamot", syllables: ["mang", "ga", "ga", "mot"], image: "manggagamot.jpg", audio: "manggagamot.wav", syllableAudios: ["mang.wav", "ga.wav", "ga.wav", "mot.wav"] },
-    { word: "empleyado", syllables: ["em", "ple", "ya", "do"], image: "empleyado.jpg", audio: "empleyado.wav", syllableAudios: ["em.wav", "ple.wav", "ya.wav", "do.wav"] },
-    { word: "tagapagbantay", syllables: ["ta", "ga", "pag", "ban", "tay"], image: "tagapagbantay.jpg", audio: "tagapagbantay.wav", syllableAudios: ["ta.wav", "ga.wav", "pag.wav", "ban.wav", "tay.wav"] },
-    { word: "tanghalian", syllables: ["tang", "ha", "li", "an"], image: "tanghalian.jpg", audio: "tanghalian.wav", syllableAudios: ["tang.wav", "ha.wav", "li.wav", "an.wav"] },
+    { word: "paborito", syllables: ["pa", "bo", "ri", "to"], image: "paborito.jpg", audio: "paborito.wav", syllableAudios: ["pa.wav", "bo.wav", "ri.wav", "to.wav"] },
     { word: "munisipyo", syllables: ["mu", "ni", "si", "pyo"], image: "munisipyo.jpg", audio: "munisipyo.wav", syllableAudios: ["mu.wav", "ni.wav", "si.wav", "pyo.wav"] },
-    { word: "paborito", syllables: ["pa", "bo", "ri", "to"], image: "paborito.jpg", audio: "paborito.wav", syllableAudios: ["pa.wav", "bo.wav", "ri.wav", "to.wav"] }
+    { word: "tanghalian", syllables: ["tang", "ha", "li", "an"], image: "tanghalian.jpg", audio: "tanghalian.wav", syllableAudios: ["tang.wav", "ha.wav", "li.wav", "an.wav"] },
+    { word: "tagapagbantay", syllables: ["ta", "ga", "pag", "ban", "tay"], image: "tagapagbantay.jpg", audio: "tagapagbantay.wav", syllableAudios: ["ta.wav", "ga.wav", "pag.wav", "ban.wav", "tay.wav"] },
+    { word: "empleyado", syllables: ["em", "ple", "ya", "do"], image: "empleyado.jpg", audio: "empleyado.wav", syllableAudios: ["em.wav", "ple.wav", "ya.wav", "do.wav"] },
+    { word: "manggagamot", syllables: ["mang", "ga", "ga", "mot"], image: "manggagamot.jpg", audio: "manggagamot.wav", syllableAudios: ["mang.wav", "ga.wav", "ga.wav", "mot.wav"] },
+    { word: "estudyante", syllables: ["es", "tu", "dyan", "te"], image: "estudyante.jpg", audio: "estudyante.wav", syllableAudios: ["es.wav", "tu.wav", "dyan.wav", "te.wav"] },
+    { word: "guwardiya", syllables: ["gu", "war", "di", "ya"], image: "guwardiya.jpg", audio: "guwardiya.wav", syllableAudios: ["gu.wav", "war.wav", "di.wav", "ya.wav"] },
+    { word: "ospital", syllables: ["os", "pi", "tal"], image: "ospital.jpg", audio: "ospital.wav", syllableAudios: ["os.wav", "pi.wav", "tal.wav"] },
+    { word: "palengke", syllables: ["pa", "leng", "ke"], image: "palengke.jpg", audio: "palengke.wav", syllableAudios: ["pa.wav", "leng.wav", "ke.wav"] }
 ];
 
 let currentWordIndex = 0;
@@ -28,11 +28,38 @@ const gameOverOverlay = document.getElementById('gameOverOverlay');
 const retryButton = document.getElementById('retryButton');
 const congratsOverlay = document.getElementById('congratsOverlay');
 const retryCongratsButton = document.getElementById('retryCongratsButton');
+const pregameOverlay = document.getElementById('pregameOverlay');
+const nextButton = document.getElementById('nextButton');
+const wordList = document.getElementById('wordList');
 
 const correctSound = new Audio('correct.mp3');
 const wrongSound = new Audio('wrong.mp3');
 const tickSound = new Audio('tick.mp3');
 const clapSound = new Audio('clap.mp3');
+
+// Pre-game setup
+window.onload = () => {
+    words.reverse().forEach((wordData, index) => {
+        const level = words.length - index; // Descending order: 10 to 1
+        const item = document.createElement('div');
+        item.classList.add('word-item');
+        item.innerHTML = `<img src="${wordData.image}" alt="${wordData.word}"><span>Level ${level}: ${wordData.word} (${wordData.syllables.join(' + ')})</span>`;
+        item.addEventListener('click', () => {
+            const wordAudio = new Audio(wordData.audio);
+            wordAudio.play().catch(() => console.log(`Word audio ${wordData.audio} failed to load`));
+            wordData.syllableAudios.forEach(syllableAudio => {
+                const audio = new Audio(syllableAudio);
+                audio.play().catch(() => console.log(`Syllable audio ${syllableAudio} failed to load`));
+            });
+        });
+        wordList.appendChild(item);
+    });
+    nextButton.addEventListener('click', () => {
+        pregameOverlay.style.display = 'none';
+        document.querySelector('.game-container').style.display = 'block';
+        loadWord();
+    });
+};
 
 function loadWord() {
     const wordData = words[currentWordIndex];
@@ -140,16 +167,16 @@ function touchStart(e) {
     draggedElement.classList.add('dragging');
     const touch = e.touches[0];
     draggedElement.style.position = 'absolute';
-    draggedElement.style.left = `${touch.pageX - 50}px`;
-    draggedElement.style.top = `${touch.pageY - 50}px`;
+    draggedElement.style.left = `${touch.pageX - 30}px`; // Adjusted for smaller size
+    draggedElement.style.top = `${touch.pageY - 30}px`;
 }
 
 function touchMove(e) {
     e.preventDefault();
     const touch = e.touches[0];
     if (draggedElement) {
-        draggedElement.style.left = `${touch.pageX - 50}px`;
-        draggedElement.style.top = `${touch.pageY - 50}px`;
+        draggedElement.style.left = `${touch.pageX - 30}px`;
+        draggedElement.style.top = `${touch.pageY - 30}px`;
     }
 }
 
