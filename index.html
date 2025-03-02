@@ -10,6 +10,9 @@
     <div class="game-container">
         <h1>Syllable Builder</h1>
         <div class="level">Level: <span id="level">1</span></div>
+        <div class="timer-container" id="timerContainer" style="display: none;">
+            <div class="timer-bar" id="timerBar"></div>
+        </div>
         <div class="word-image">
             <img id="wordImage" src="" alt="Word Image" onerror="this.src='placeholder.jpg'">
         </div>
@@ -18,6 +21,12 @@
         <div class="syllable-blocks" id="syllableBlocks"></div>
         <div class="message" id="message"></div>
     </div>
+    <div class="game-over-overlay" id="gameOverOverlay" style="display: none;">
+        <div class="game-over-popup">
+            <h2>Game Over!</h2>
+            <p>Time's up!</p>
+            <button id="retryButton">Retry Level 1</button>
+        </div>
+    </div>
     <script src="script.js"></script>
-</body>
 </html>
