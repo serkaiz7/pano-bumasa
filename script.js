@@ -1,18 +1,20 @@
 const words = [
-    { word: "palengke", syllables: ["pa", "leng", "ke"], image: "palengke.jpg", audio: "palengke.wav" },
-    { word: "ospital", syllables: ["os", "pi", "tal"], image: "ospital.jpg", audio: "ospital.wav" },
-    { word: "guwardiya", syllables: ["gu", "war", "di", "ya"], image: "guwardiya.jpg", audio: "guwardiya.wav" },
-    { word: "estudyante", syllables: ["es", "tu", "dyan", "te"], image: "estudyante.jpg", audio: "estudyante.wav" },
-    { word: "manggagamot", syllables: ["mang", "ga", "ga", "mot"], image: "manggagamot.jpg", audio: "manggagamot.wav" },
-    { word: "empleyado", syllables: ["em", "ple", "ya", "do"], image: "empleyado.jpg", audio: "empleyado.wav" },
-    { word: "tagapagbantay", syllables: ["ta", "ga", "pag", "ban", "tay"], image: "tagapagbantay.jpg", audio: "tagapagbantay.wav" },
-    { word: "tanghalian", syllables: ["tang", "ha", "li", "an"], image: "tanghalian.jpg", audio: "tanghalian.wav" },
-    { word: "munisipyo", syllables: ["mu", "ni", "si", "pyo"], image: "munisipyo.jpg", audio: "munisipyo.wav" },
-    { word: "paborito", syllables: ["pa", "bo", "ri", "to"], image: "paborito.jpg", audio: "paborito.wav" }
+    { word: "palengke", syllables: ["pa", "leng", "ke"], image: "palengke.jpg", audio: "palengke.wav", syllableAudios: ["pa.wav", "leng.wav", "ke.wav"] },
+    { word: "ospital", syllables: ["os", "pi", "tal"], image: "ospital.jpg", audio: "ospital.wav", syllableAudios: ["os.wav", "pi.wav", "tal.wav"] },
+    { word: "guwardiya", syllables: ["gu", "war", "di", "ya"], image: "guwardiya.jpg", audio: "guwardiya.wav", syllableAudios: ["gu.wav", "war.wav", "di.wav", "ya.wav"] },
+    { word: "estudyante", syllables: ["es", "tu", "dyan", "te"], image: "estudyante.jpg", audio: "estudyante.wav", syllableAudios: ["es.wav", "tu.wav", "dyan.wav", "te.wav"] },
+    { word: "manggagamot", syllables: ["mang", "ga", "ga", "mot"], image: "manggagamot.jpg", audio: "manggagamot.wav", syllableAudios: ["mang.wav", "ga.wav", "ga.wav", "mot.wav"] },
+    { word: "empleyado", syllables: ["em", "ple", "ya", "do"], image: "empleyado.jpg", audio: "empleyado.wav", syllableAudios: ["em.wav", "ple.wav", "ya.wav", "do.wav"] },
+    { word: "tagapagbantay", syllables: ["ta", "ga", "pag", "ban", "tay"], image: "tagapagbantay.jpg", audio: "tagapagbantay.wav", syllableAudios: ["ta.wav", "ga.wav", "pag.wav", "ban.wav", "tay.wav"] },
+    { word: "tanghalian", syllables: ["tang", "ha", "li", "an"], image: "tanghalian.jpg", audio: "tanghalian.wav", syllableAudios: ["tang.wav", "ha.wav", "li.wav", "an.wav"] },
+    { word: "munisipyo", syllables: ["mu", "ni", "si", "pyo"], image: "munisipyo.jpg", audio: "munisipyo.wav", syllableAudios: ["mu.wav", "ni.wav", "si.wav", "pyo.wav"] },
+    { word: "paborito", syllables: ["pa", "bo", "ri", "to"], image: "paborito.jpg", audio: "paborito.wav", syllableAudios: ["pa.wav", "bo.wav", "ri.wav", "to.wav"] }
 ];
 
 let currentWordIndex = 0;
 let placedSyllables = [];
+let timer = null;
+let timeLeft = 30; // 30 seconds per level (Levels 2 and 3)
 
 const levelElement = document.getElementById('level');
 const wordImageElement = document.getElementById('wordImage');
@@ -20,9 +22,16 @@ const wordDisplayElement = document.getElementById('wordDisplay');
 const hollowBlocksElement = document.getElementById('hollowBlocks');
 const syllableBlocksElement = document.getElementById('syllableBlocks');
 const messageElement = document.getElementById('message');
+const timerContainer = document.getElementById('timerContainer');
+const timerBar = document.getElementById('timerBar');
+const gameOverOverlay = document.getElementById('gameOverOverlay');
+const retryButton = document.getElementById('retryButton');
+const congratsOverlay = document.getElementById('congratsOverlay');
 
 const correctSound = new Audio('correct.wav');
 const wrongSound = new Audio('wrong.wav');
+const tickSound = new Audio('tick.wav');
+const clapSound = new Audio('clap.wav');
 
 function loadWord() {
     const wordData = words[currentWordIndex];
@@ -38,12 +47,22 @@ function loadWord() {
     placedSyllables = [];
     messageElement.textContent = '';
 
+    // Show timer for Levels 2 and 3
+    if (level > 1) {
+        timerContainer.style.display = 'block';
+        timeLeft = 30; // Reset timer to 30 seconds
+        timerBar.style.width = '100%';
+        startTimer();
+    } else {
+        timerContainer.style.display = 'none';
+    }
+
     // Create hollow blocks with expected syllables
     wordData.syllables.forEach((syllable, index) => {
         const hollow = document.createElement('div');
         hollow.classList.add('hollow-block');
         hollow.dataset.index = index;
-        hollow.dataset.expected = syllable; // Store expected syllable
+        hollow.dataset.expected = syllable;
         hollow.addEventListener('dragover', dragOver);
         hollow.addEventListener('drop', drop);
         hollowBlocksElement.appendChild(hollow);
@@ -61,7 +80,7 @@ function loadWord() {
         block.addEventListener('touchstart', touchStart);
         block.addEventListener('touchmove', touchMove);
         block.addEventListener('touchend', touchEnd);
-        block.tabIndex = 0; // Keyboard accessibility
+        block.tabIndex = 0;
         syllableBlocksElement.appendChild(block);
     });
 
@@ -74,12 +93,31 @@ function loadWord() {
 
 function playHint() {
     const wordData = words[currentWordIndex];
-    const audio = new Audio(wordData.audio);
-    audio.play().catch(() => console.log('Audio failed to load'));
+    const wordAudio = new Audio(wordData.audio);
+    wordAudio.play().catch(() => console.log('Word audio failed to load'));
+    wordData.syllableAudios.forEach((syllableAudio, index) => {
+        setTimeout(() => {
+            const audio = new Audio(syllableAudio);
+            audio.play().catch(() => console.log(`Syllable audio ${syllableAudio} failed to load`));
+        }, index * 500);
+    });
     highlightNextSyllable();
 }
 
-// Drag-and-drop functions
+function startTimer() {
+    if (timer) clearInterval(timer);
+    timer = setInterval(() => {
+        timeLeft--;
+        const percentage = (timeLeft / 30) * 100;
+        timerBar.style.width = `${percentage}%`;
+        tickSound.play().catch(() => console.log('Tick sound failed to load'));
+        if (timeLeft <= 0) {
+            clearInterval(timer);
+            gameOver();
+        }
+    }, 1000);
+}
+
 function dragStart(e) {
     e.dataTransfer.setData('text/plain', e.target.textContent);
     setTimeout(() => e.target.classList.add('dragging'), 0);
@@ -99,7 +137,6 @@ function drop(e) {
     handleDrop(e.target, syllable);
 }
 
-// Touch support functions
 let draggedElement = null;
 
 function touchStart(e) {
@@ -129,7 +166,7 @@ function touchEnd(e) {
 }
 
 function handleDrop(target, syllable) {
-    const index = target.dataset.index;
+    const index = parseInt(target.dataset.index);
     const expected = target.dataset.expected;
     if (!placedSyllables[index]) {
         if (syllable === expected) {
@@ -140,13 +177,14 @@ function handleDrop(target, syllable) {
             if (draggedBlock) draggedBlock.remove();
             correctSound.play().catch(() => console.log('Correct sound failed to load'));
 
-            // Check if the word is complete
-            if (placedSyllables.length === words[currentWordIndex].syllables.length) {
+            if (placedSyllables.length === words[currentWordIndex].syllables.length &&
+                placedSyllables.every((s, i) => s === words[currentWordIndex].syllables[i])) {
+                clearInterval(timer); // Stop timer on completion
                 const wordAudio = new Audio(words[currentWordIndex].audio);
                 wordAudio.play().catch(() => console.log('Word audio failed to load'));
                 messageElement.textContent = "Correct!";
                 messageElement.style.color = '#32cd32';
-                setTimeout(nextWord, 2000); // Proceed to next word after 2 seconds
+                setTimeout(nextWord, 2000);
             }
         } else {
             messageElement.textContent = "Try again!";
@@ -168,12 +206,7 @@ function nextWord() {
         }
         loadWord();
     } else {
-        messageElement.textContent = "Congratulations! You've completed all levels!";
-        messageElement.style.color = '#ffd700';
-        hollowBlocksElement.innerHTML = '';
-        syllableBlocksElement.innerHTML = '';
-        wordImageElement.src = '';
-        wordDisplayElement.textContent = '';
+        showCongrats();
     }
 }
 
@@ -189,5 +222,32 @@ function highlightNextSyllable() {
         }, 2000);
     }
 }
+
+function gameOver() {
+    gameOverOverlay.style.display = 'flex';
+    messageElement.textContent = '';
+}
+
+function showCongrats() {
+    congratsOverlay.style.display = 'flex';
+    const overlay = document.getElementById('congratsOverlay');
+    for (let i = 0; i < 50; i++) {
+        const confetti = document.createElement('div');
+        confetti.classList.add('confetti');
+        confetti.style.left = `${Math.random() * 100}vw`;
+        confetti.style.backgroundColor = ['#ff4500', '#ffd700', '#98fb98', '#87ceeb'][Math.floor(Math.random() * 4)];
+        confetti.style.animationDelay = `${Math.random() * 2}s`;
+        overlay.appendChild(confetti);
+    }
+    clapSound.play().catch(() => console.log('Clap sound failed to load'));
+    messageElement.textContent = 'Congratulations!';
+    messageElement.style.color = '#32cd32';
+}
+
+retryButton.addEventListener('click', () => {
+    gameOverOverlay.style.display = 'none';
+    currentWordIndex = 0;
+    loadWord();
+});
 
 loadWord();
