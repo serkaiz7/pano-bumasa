@@ -10,12 +10,8 @@
     <div class="pregame-overlay" id="pregameOverlay">
         <div class="pregame-content">
             <h1>Learn the Words!</h1>
-            <div class="page-buttons">
-                <button id="page1Button" class="active">Page 1</button>
-                <button id="page2Button">Page 2</button>
-            </div>
-            <div class="word-list" id="wordList"></div>
-            <button id="nextButton">Start Test</button>
+            <div class="word-container" id="wordContainer"></div>
+            <button id="nextButton" style="display: none;">Next</button>
         </div>
     </div>
     <div class="game-container" style="display: none;">
@@ -34,7 +30,7 @@
         <div class="game-over-popup">
             <h2>Game Over!</h2>
             <p>Time's up!</p>
-            <button id="retryButton">Retry Level 1</button>
+            <button id="retryButton">Retry</button>
         </div>
     </div>
     <div class="congrats-overlay" id="congratsOverlay" style="display: none;">
