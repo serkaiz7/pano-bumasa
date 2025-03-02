@@ -15,6 +15,9 @@ let currentWordIndex = 0;
 let placedSyllables = [];
 let timer = null;
 let timeLeft = 35;
+let score = 0;
+let correctLevels = [];
+let wrongLevels = [];
 
 const levelElement = document.getElementById('level');
 const wordImageElement = document.getElementById('wordImage');
@@ -31,6 +34,11 @@ const retryCongratsButton = document.getElementById('retryCongratsButton');
 const pregameOverlay = document.getElementById('pregameOverlay');
 const nextButton = document.getElementById('nextButton');
 const wordList = document.getElementById('wordList');
+const page1Button = document.getElementById('page1Button');
+const page2Button = document.getElementById('page2Button');
+const finalScore = document.getElementById('finalScore');
+const correctLevelsDisplay = document.getElementById('correctLevels');
+const wrongLevelsDisplay = document.getElementById('wrongLevels');
 
 const correctSound = new Audio('correct.mp3');
 const wrongSound = new Audio('wrong.mp3');
@@ -38,18 +46,50 @@ const tickSound = new Audio('tick.mp3');
 const clapSound = new Audio('clap.mp3');
 
 // Pre-game setup
+let currentPage = 1;
 window.onload = () => {
-    words.reverse().forEach((wordData, index) => {
-        const level = words.length - index; // Descending order: 10 to 1
-        const item = document.createElement('div');
-        item.classList.add('word-item');
-        item.innerHTML = `<img src="${wordData.image}" alt="${wordData.word}"><span>Level ${level}: ${wordData.word} (${wordData.syllables.join(' + ')})</span>`;
-        item.addEventListener('click', () => {
-            const wordAudio = new Audio(wordData.audio);
-            wordAudio.play().catch(() => console.log(`Word audio ${wordData.audio} failed to load`));
+    function showPage(page) {
+        wordList.innerHTML = '';
+        const start = (page - 1) * 5;
+        const end = start + 5;
+        words.slice(start, end).reverse().forEach((wordData, index) => {
+            const level = (page === 1 ? words.length - index : 5 - index); // Levels 10-6 for page 1, 5-1 for page 2
+            const item = document.createElement('div');
+            item.classList.add('word-item');
+            item.innerHTML = `
+                <img src="${wordData.image}" alt="${wordData.word}">
+                <div class="word-text">Level ${level}: ${wordData.word}</div>
+                <div class="syllables">${wordData.syllables.map(s => `<span>${s}</span>`).join(' + ')}</div>
+            `;
+            item.querySelector('img').addEventListener('click', () => {
+                const audio = new Audio(wordData.audio);
+                audio.play().catch(() => console.log(`Word audio ${wordData.audio} failed to load`));
+            });
+            wordData.syllables.forEach((syllable, i) => {
+                item.querySelectorAll('span')[i].addEventListener('click', () => {
+                    const audio = new Audio(wordData.syllableAudios[i]);
+                    audio.play().catch(() => console.log(`Syllable audio ${wordData.syllableAudios[i]} failed to load`));
+                });
+            });
+            wordList.appendChild(item);
         });
-        wordList.appendChild(item);
+    }
+
+    page1Button.addEventListener('click', () => {
+        currentPage = 1;
+        page1Button.classList.add('active');
+        page2Button.classList.remove('active');
+        showPage(1);
     });
+
+    page2Button.addEventListener('click', () => {
+        currentPage = 2;
+        page2Button.classList.add('active');
+        page1Button.classList.remove('active');
+        showPage(2);
+    });
+
+    page1Button.click(); // Default to Page 1
     nextButton.addEventListener('click', () => {
         pregameOverlay.style.display = 'none';
         document.querySelector('.game-container').style.display = 'block';
@@ -163,16 +203,16 @@ function touchStart(e) {
     draggedElement.classList.add('dragging');
     const touch = e.touches[0];
     draggedElement.style.position = 'absolute';
-    draggedElement.style.left = `${touch.pageX - 30}px`;
-    draggedElement.style.top = `${touch.pageY - 30}px`;
+    draggedElement.style.left = `${touch.pageX - 25}px`; // Adjusted for smaller size
+    draggedElement.style.top = `${touch.pageY - 25}px`;
 }
 
 function touchMove(e) {
     e.preventDefault();
     const touch = e.touches[0];
     if (draggedElement) {
-        draggedElement.style.left = `${touch.pageX - 30}px`;
-        draggedElement.style.top = `${touch.pageY - 30}px`;
+        draggedElement.style.left = `${touch.pageX - 25}px`;
+        draggedElement.style.top = `${touch.pageY - 25}px`;
     }
 }
 
@@ -194,10 +234,10 @@ function touchEnd(e) {
 function handleDrop(target, syllable) {
     const index = parseInt(target.dataset.index);
     const expected = target.dataset.expected;
-    if (!placedSyllables[index]) {
-        if (syllable === expected) {
-            target.textContent = syllable;
-            target.classList.add('filled');
+    target.textContent = syllable; // Allow wrong syllables
+    if (syllable === expected) {
+        target.classList.add('filled');
+        if (!placedSyllables[index]) {
             placedSyllables[index] = syllable;
             const draggedBlock = Array.from(syllableBlocksElement.children).find(block => block.textContent === syllable);
             if (draggedBlock) draggedBlock.remove();
@@ -215,19 +255,25 @@ function handleDrop(target, syllable) {
             });
             if (allFilled && placedSyllables.length === words[currentWordIndex].syllables.length) {
                 clearInterval(timer);
+                score++;
+                correctLevels.push(currentWordIndex + 1);
                 const wordAudio = new Audio(words[currentWordIndex].audio);
                 wordAudio.play().catch(() => console.log('Word audio failed to load'));
                 messageElement.textContent = "Correct!";
                 messageElement.style.color = '#32cd32';
                 setTimeout(nextWord, 2000);
             }
-        } else {
-            messageElement.textContent = "Try again!";
-            messageElement.style.color = '#ff4500';
-            wrongSound.play().catch(() => console.log('Wrong sound failed to load'));
-            target.style.borderColor = '#ff0000';
-            setTimeout(() => target.style.borderColor = '#ff4500', 500);
         }
+    } else {
+        if (!placedSyllables[index]) {
+            placedSyllables[index] = syllable; // Allow wrong placement
+            wrongSound.play().catch(() => console.log('Wrong sound failed to load'));
+            wrongLevels.push(currentWordIndex + 1);
+        }
+        messageElement.textContent = "Wrong!";
+        messageElement.style.color = '#ff4500';
+        target.style.borderColor = '#ff0000';
+        setTimeout(() => target.style.borderColor = '#ff4500', 500);
     }
 }
 
@@ -271,19 +317,28 @@ function showCongrats() {
         overlay.appendChild(confetti);
     }
     clapSound.play().catch(() => console.log('Clap sound failed to load'));
-    messageElement.textContent = 'Congratulations!';
+    finalScore.textContent = `${score}/10`;
+    correctLevelsDisplay.textContent = correctLevels.join(', ') || 'None';
+    wrongLevelsDisplay.textContent = wrongLevels.join(', ') || 'None';
+    messageElement.textContent = 'Test Completed!';
     messageElement.style.color = '#32cd32';
 }
 
 retryButton.addEventListener('click', () => {
     gameOverOverlay.style.display = 'none';
     currentWordIndex = 0;
+    score = 0;
+    correctLevels = [];
+    wrongLevels = [];
     loadWord();
 });
 
 retryCongratsButton.addEventListener('click', () => {
     congratsOverlay.style.display = 'none';
     currentWordIndex = 0;
+    score = 0;
+    correctLevels = [];
+    wrongLevels = [];
     loadWord();
 });
 
