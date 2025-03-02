@@ -14,7 +14,7 @@ const words = [
 let currentWordIndex = 0;
 let placedSyllables = [];
 let timer = null;
-let timeLeft = 35; // Changed to 35 seconds
+let timeLeft = 35;
 
 const levelElement = document.getElementById('level');
 const wordImageElement = document.getElementById('wordImage');
@@ -28,7 +28,6 @@ const gameOverOverlay = document.getElementById('gameOverOverlay');
 const retryButton = document.getElementById('retryButton');
 const congratsOverlay = document.getElementById('congratsOverlay');
 const retryCongratsButton = document.getElementById('retryCongratsButton');
-const hintOverlay = document.getElementById('hintOverlay');
 
 const correctSound = new Audio('correct.mp3');
 const wrongSound = new Audio('wrong.mp3');
@@ -46,7 +45,6 @@ function loadWord() {
     syllableBlocksElement.innerHTML = '';
     placedSyllables = [];
     messageElement.textContent = '';
-    hintOverlay.style.display = 'none'; // Hide hint overlay on new word
 
     // Show timer for Levels 2 to 10 (words 2-10)
     if (currentWordIndex > 0) {
@@ -80,7 +78,8 @@ function loadWord() {
         block.addEventListener('touchstart', touchStart); // Immediate drag on touch
         block.addEventListener('touchmove', touchMove);
         block.addEventListener('touchend', touchEnd);
-        block.addEventListener('dblclick', () => playSyllableHint(syllable, wordData.syllableAudios));
+        block.addEventListener('click', () => playSyllableHint(syllable, wordData.syllableAudios)); // Single tap for sound
+        block.addEventListener('dblclick', () => {}); // Prevent double-tap interference
         block.tabIndex = 0;
         syllableBlocksElement.appendChild(block);
     });
@@ -110,12 +109,9 @@ function startTimer() {
     if (timer) clearInterval(timer);
     timer = setInterval(() => {
         timeLeft--;
-        const percentage = (timeLeft / 35) * 100; // Adjusted for 35 seconds
+        const percentage = (timeLeft / 35) * 100;
         timerBar.style.width = `${percentage}%`;
         tickSound.play().catch(() => console.log('Tick sound failed to load'));
-        if (timeLeft === 18) { // Show hint at approximately 18 seconds (half of 35)
-            hintOverlay.style.display = 'block';
-        }
         if (timeLeft <= 0) {
             clearInterval(timer);
             gameOver();
@@ -185,7 +181,7 @@ function handleDrop(target, syllable) {
             if (draggedBlock) draggedBlock.remove();
             correctSound.play().catch(() => console.log('Correct sound failed to load'));
 
-            // Check if all hollow blocks are correctly filled
+            // Check if all hollow blocks are correctly filled in order
             const allFilled = Array.from(hollowBlocksElement.children).every((block, i) => {
                 return placedSyllables[i] === words[currentWordIndex].syllables[i];
             });
