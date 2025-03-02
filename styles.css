@@ -1,43 +1,112 @@
 body {
     font-family: Arial, sans-serif;
     background-color: #f0f8ff;
-    text-align: center;
     margin: 0;
     padding: 0;
     overflow-x: hidden;
     position: relative;
 }
 
+.pregame-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.7);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 3;
+}
+
+.pregame-content {
+    background-color: #fff;
+    padding: 15px;
+    border-radius: 10px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+    width: 90%;
+    max-height: 80vh;
+    overflow-y: auto;
+}
+
+.pregame-content h1 {
+    color: #ff4500;
+    font-size: 1.5em;
+    margin-bottom: 10px;
+}
+
+.word-list {
+    margin-bottom: 15px;
+}
+
+.word-item {
+    display: flex;
+    align-items: center;
+    margin: 10px 0;
+    padding: 5px;
+    background-color: #ffd700;
+    border-radius: 5px;
+}
+
+.word-item img {
+    width: 50px;
+    height: 50px;
+    margin-right: 10px;
+    border-radius: 5px;
+}
+
+.word-item span {
+    font-size: 1em;
+    color: #333;
+}
+
+#nextButton {
+    padding: 10px;
+    font-size: 1em;
+    background-color: #ff4500;
+    color: #fff;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    width: 80%;
+}
+
+#nextButton:hover {
+    background-color: #ff6347;
+}
+
 .game-container {
-    max-width: 90vw;
-    margin: 20px auto;
-    padding: 20px;
+    max-width: 100%;
+    margin: 10px;
+    padding: 10px;
     background: linear-gradient(135deg, #87ceeb, #98fb98);
-    border-radius: 15px;
-    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
     position: relative;
     z-index: 1;
+    display: none;
 }
 
 h1 {
     color: #ff4500;
-    font-size: 2.5em;
+    font-size: 1.5em;
     text-shadow: 1px 1px 2px #fff;
     animation: bounce 2s infinite;
 }
 
 .level {
-    font-size: 1.5em;
+    font-size: 1em;
     color: #333;
-    margin-bottom: 15px;
+    margin-bottom: 10px;
 }
 
 .timer-container {
-    width: 80%;
-    height: 20px;
+    width: 90%;
+    height: 15px;
     background-color: #ddd;
-    border-radius: 10px;
-    margin: 10px auto;
+    border-radius: 5px;
+    margin: 5px auto;
     overflow: hidden;
 }
 
@@ -51,8 +120,8 @@ h1 {
 .word-image img {
     max-width: 100%;
     height: auto;
-    border-radius: 10px;
-    margin-bottom: 20px;
+    border-radius: 5px;
+    margin-bottom: 10px;
     transition: transform 0.3s ease;
 }
 
@@ -61,9 +130,9 @@ h1 {
 }
 
 .word {
-    font-size: 2em;
+    font-size: 1.2em;
     color: #333;
-    margin-bottom: 15px;
+    margin-bottom: 10px;
     cursor: pointer;
     transition: color 0.3s ease;
 }
@@ -76,22 +145,22 @@ h1 {
 .hollow-blocks {
     display: flex;
     justify-content: center;
-    gap: 12px;
-    margin-bottom: 20px;
+    gap: 8px;
+    margin-bottom: 10px;
     flex-wrap: wrap;
 }
 
 .hollow-block {
-    width: 100px;
-    height: 100px;
-    border: 3px dashed #ff4500;
+    width: 60px;
+    height: 60px;
+    border: 2px dashed #ff4500;
     background-color: #fff;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 1.5em;
+    font-size: 1em;
     color: #ff4500;
-    border-radius: 10px;
+    border-radius: 5px;
     transition: all 0.3s ease;
 }
 
@@ -105,21 +174,21 @@ h1 {
     display: flex;
     flex-wrap: wrap;
     justify-content: center;
-    gap: 12px;
-    margin-bottom: 20px;
+    gap: 8px;
+    margin-bottom: 10px;
 }
 
 .syllable-block {
-    width: 100px;
-    height: 100px;
+    width: 60px;
+    height: 60px;
     background-color: #ffd700;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 1.5em;
+    font-size: 1em;
     cursor: grab;
-    border-radius: 10px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    border-radius: 5px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
     transition: transform 0.1s ease, left 0.1s ease, top 0.1s ease, opacity 0.1s ease;
 }
 
@@ -134,7 +203,7 @@ h1 {
 }
 
 .message {
-    font-size: 1.5em;
+    font-size: 1em;
     font-weight: bold;
     color: #ff4500;
     text-shadow: 1px 1px 2px #fff;
@@ -156,20 +225,21 @@ h1 {
 
 .game-over-popup {
     background-color: #fff;
-    padding: 20px;
+    padding: 15px;
     border-radius: 10px;
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
     text-align: center;
+    width: 80%;
 }
 
 .game-over-popup h2 {
     color: #ff0000;
-    font-size: 2em;
+    font-size: 1.5em;
 }
 
 .game-over-popup button {
-    padding: 10px 20px;
-    font-size: 1.2em;
+    padding: 8px 15px;
+    font-size: 1em;
     background-color: #ff4500;
     color: #fff;
     border: none;
@@ -197,21 +267,22 @@ h1 {
 
 .congrats-popup {
     background-color: #fff;
-    padding: 20px;
+    padding: 15px;
     border-radius: 10px;
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
     text-align: center;
     animation: fadeIn 1s;
+    width: 80%;
 }
 
 .congrats-popup h2 {
     color: #32cd32;
-    font-size: 2.5em;
+    font-size: 1.8em;
 }
 
 .congrats-popup button {
-    padding: 10px 20px;
-    font-size: 1.2em;
+    padding: 8px 15px;
+    font-size: 1em;
     background-color: #ff4500;
     color: #fff;
     border: none;
@@ -227,8 +298,8 @@ h1 {
 
 .congrats-overlay .confetti {
     position: absolute;
-    width: 10px;
-    height: 10px;
+    width: 8px;
+    height: 8px;
     background-color: #ff4500;
     animation: fall 2s infinite;
 }
@@ -255,26 +326,16 @@ h1 {
     100% { top: 100%; opacity: 0; }
 }
 
-/* Responsive Design */
+/* Responsive Design (already optimized for mobile) */
 @media (max-width: 600px) {
-    h1 {
-        font-size: 1.8em;
+    .game-container, .pregame-content, .game-over-popup, .congrats-popup {
+        padding: 5px;
     }
-    .word {
-        font-size: 1.5em;
+    .word-item img {
+        width: 40px;
+        height: 40px;
     }
-    .hollow-block, .syllable-block {
-        width: 80px;
-        height: 80px;
-        font-size: 1.2em;
-    }
-    .level, .message {
-        font-size: 1.2em;
-    }
-    .game-over-popup h2, .congrats-popup h2 {
-        font-size: 1.8em;
-    }
-    .game-over-popup button, .congrats-popup button {
-        font-size: 1em;
+    .word-item span {
+        font-size: 0.9em;
     }
 }
