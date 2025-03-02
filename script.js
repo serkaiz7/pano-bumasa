@@ -1,131 +1,140 @@
-// Word list from the provided image, with placeholders for images and audio
 const words = [
-    // Level 1: 3-syllable words
     { word: "palengke", syllables: ["pa", "leng", "ke"], image: "palengke.jpg", audio: "palengke.mp3" },
     { word: "ospital", syllables: ["os", "pi", "tal"], image: "ospital.jpg", audio: "ospital.mp3" },
-    // Level 2: 4-syllable words
     { word: "guwardiya", syllables: ["gu", "war", "di", "ya"], image: "guwardiya.jpg", audio: "guwardiya.mp3" },
     { word: "estudyante", syllables: ["es", "tu", "dyan", "te"], image: "estudyante.jpg", audio: "estudyante.mp3" },
+    { word: "manggagamot", syllables: ["mang", "ga", "ga", "mot"], image: "manggagamot.jpg", audio: "manggagamot.mp3" },
     { word: "empleyado", syllables: ["em", "ple", "ya", "do"], image: "empleyado.jpg", audio: "empleyado.mp3" },
     { word: "tanghalian", syllables: ["tang", "ha", "li", "an"], image: "tanghalian.jpg", audio: "tanghalian.mp3" },
     { word: "munisipyo", syllables: ["mu", "ni", "si", "pyo"], image: "munisipyo.jpg", audio: "munisipyo.mp3" },
     { word: "paborito", syllables: ["pa", "bo", "ri", "to"], image: "paborito.jpg", audio: "paborito.mp3" },
-    // Level 3: 5-syllable words
-    { word: "tagapagbantay", syllables: ["ta", "ga", "pag", "ban", "tay"], image: "tagapagbantay.jpg", audio: "tagapagbantay.mp3" },
-    { word: "manggagamot", syllables: ["mang", "ga", "ga", "mot"], image: "manggagamot.jpg", audio: "manggagamot.mp3" } // Corrected typo from "mangggagamot"
+    { word: "tagapagbantay", syllables: ["ta", "ga", "pag", "ban", "tay"], image: "tagapagbantay.jpg", audio: "tagapagbantay.mp3" }
 ];
 
-let currentLevel = 1;
 let currentWordIndex = 0;
-let selectedSyllables = [];
-const maxLevel = 3;
+let placedSyllables = [];
 
 const levelElement = document.getElementById('level');
 const wordImageElement = document.getElementById('wordImage');
 const wordDisplayElement = document.getElementById('wordDisplay');
-const syllableButtonsElement = document.getElementById('syllableButtons');
+const hollowBlocksElement = document.getElementById('hollowBlocks');
+const syllableBlocksElement = document.getElementById('syllableBlocks');
 const messageElement = document.getElementById('message');
 
-// Load the current word and set up the game
+const correctSound = new Audio('correct.mp3');
+const wrongSound = new Audio('wrong.mp3');
+
 function loadWord() {
     const wordData = words[currentWordIndex];
-    levelElement.textContent = currentLevel;
+    let level = wordData.syllables.length === 3 ? 1 : wordData.syllables.length === 4 ? 2 : 3;
+    levelElement.textContent = level;
     wordImageElement.src = wordData.image;
+    wordImageElement.style.transform = 'scale(0)';
+    setTimeout(() => wordImageElement.style.transform = 'scale(1)', 100);
     wordDisplayElement.textContent = wordData.word;
-    syllableButtonsElement.innerHTML = '';
+    hollowBlocksElement.innerHTML = '';
+    syllableBlocksElement.innerHTML = '';
+    placedSyllables = [];
+    messageElement.textContent = '';
 
-    // Shuffle syllables for display
-    const shuffledSyllables = [...wordData.syllables].sort(() => Math.random() - 0.5);
-    shuffledSyllables.forEach(syllable => {
-        const button = document.createElement('button');
-        button.classList.add('syllable-button');
-        button.textContent = syllable;
-        button.addEventListener('click', () => selectSyllable(syllable));
-        syllableButtonsElement.appendChild(button);
+    // Create hollow blocks
+    wordData.syllables.forEach((_, index) => {
+        const hollow = document.createElement('div');
+        hollow.classList.add('hollow-block');
+        hollow.dataset.index = index;
+        hollow.addEventListener('dragover', dragOver);
+        hollow.addEventListener('drop', drop);
+        hollowBlocksElement.appendChild(hollow);
     });
 
-    // Hint on double-tap
+    // Create draggable syllable blocks
+    const shuffledSyllables = [...wordData.syllables].sort(() => Math.random() - 0.5);
+    shuffledSyllables.forEach(syllable => {
+        const block = document.createElement('div');
+        block.classList.add('syllable-block');
+        block.textContent = syllable;
+        block.setAttribute('draggable', true);
+        block.addEventListener('dragstart', dragStart);
+        block.addEventListener('dragend', dragEnd);
+        syllableBlocksElement.appendChild(block);
+    });
+
+    // Hint on double-click
     wordDisplayElement.ondblclick = () => {
-        playAudio(wordData.audio);
+        const audio = new Audio(wordData.audio);
+        audio.play();
         highlightNextSyllable();
     };
 }
 
-// Select a syllable and check progress
-function selectSyllable(syllable) {
-    selectedSyllables.push(syllable);
-    checkSequence();
+function dragStart(e) {
+    e.dataTransfer.setData('text/plain', e.target.textContent);
+    setTimeout(() => e.target.classList.add('dragging'), 0);
 }
 
-// Check if the selected syllables match the correct sequence
-function checkSequence() {
-    const wordData = words[currentWordIndex];
-    const correctSequence = wordData.syllables.slice(0, selectedSyllables.length).join('');
-    const selectedSequence = selectedSyllables.join('');
+function dragEnd(e) {
+    e.target.classList.remove('dragging');
+}
 
-    if (selectedSequence === correctSequence) {
-        if (selectedSyllables.length === wordData.syllables.length) {
-            messageElement.textContent = "Correct!";
-            playSound('correct.mp3');
-            setTimeout(nextWord, 1000);
+function dragOver(e) {
+    e.preventDefault();
+}
+
+function drop(e) {
+    e.preventDefault();
+    const syllable = e.dataTransfer.getData('text/plain');
+    const index = e.target.dataset.index;
+    const targetBlock = e.target;
+
+    if (placedSyllables[index] === undefined) {
+        if (words[currentWordIndex].syllables[index] === syllable) {
+            targetBlock.textContent = syllable;
+            targetBlock.classList.add('filled');
+            placedSyllables[index] = syllable;
+            const draggedBlock = Array.from(syllableBlocksElement.children).find(block => block.textContent === syllable);
+            if (draggedBlock) draggedBlock.remove();
+
+            if (placedSyllables.filter(s => s).length === words[currentWordIndex].syllables.length) {
+                messageElement.textContent = "Correct!";
+                messageElement.style.color = '#32cd32';
+                correctSound.play();
+                setTimeout(nextWord, 1500);
+            }
+        } else {
+            messageElement.textContent = "Try again!";
+            messageElement.style.color = '#ff4500';
+            wrongSound.play();
+            targetBlock.style.borderColor = '#ff0000';
+            setTimeout(() => targetBlock.style.borderColor = '#ff4500', 500);
         }
-    } else {
-        messageElement.textContent = "Try again!";
-        playSound('wrong.mp3');
-        setTimeout(() => {
-            selectedSyllables = [];
-            loadWord();
-        }, 1000);
     }
 }
 
-// Move to the next word or level
 function nextWord() {
-    selectedSyllables = [];
     currentWordIndex++;
     if (currentWordIndex < words.length) {
-        const nextWordSyllables = words[currentWordIndex].syllables.length;
-        if (nextWordSyllables <= 3 && currentLevel === 1) {
-            loadWord();
-        } else if (nextWordSyllables === 4 && currentLevel === 2) {
-            loadWord();
-        } else if (nextWordSyllables >= 5 && currentLevel === 3) {
-            loadWord();
-        } else {
-            currentLevel++;
-            if (currentLevel <= maxLevel) {
-                currentWordIndex = words.findIndex(w => w.syllables.length === (currentLevel === 2 ? 4 : 5));
-                loadWord();
-            } else {
-                messageElement.textContent = "Congratulations! You've completed all levels!";
-            }
-        }
+        loadWord();
     } else {
         messageElement.textContent = "Congratulations! You've completed all levels!";
+        messageElement.style.color = '#ffd700';
+        hollowBlocksElement.innerHTML = '';
+        syllableBlocksElement.innerHTML = '';
+        wordImageElement.src = '';
+        wordDisplayElement.textContent = '';
     }
 }
 
-// Play audio for hints
-function playAudio(audioFile) {
-    const audio = new Audio(audioFile);
-    audio.play();
-}
-
-// Play sound effects
-function playSound(soundFile) {
-    const sound = new Audio(soundFile);
-    sound.play();
-}
-
-// Highlight the next correct syllable for the hint
 function highlightNextSyllable() {
-    const wordData = words[currentWordIndex];
-    const nextSyllable = wordData.syllables[selectedSyllables.length];
-    const buttons = syllableButtonsElement.querySelectorAll('.syllable-button');
-    buttons.forEach(button => {
-        button.style.backgroundColor = button.textContent === nextSyllable ? '#98fb98' : '#ffd700';
-    });
+    const nextIndex = placedSyllables.filter(s => s).length;
+    if (nextIndex < words[currentWordIndex].syllables.length) {
+        const hollow = hollowBlocksElement.children[nextIndex];
+        hollow.style.borderColor = '#32cd32';
+        hollow.style.transform = 'scale(1.1)';
+        setTimeout(() => {
+            hollow.style.borderColor = '#ff4500';
+            hollow.style.transform = 'scale(1)';
+        }, 2000);
+    }
 }
 
-// Start the game
 loadWord();
