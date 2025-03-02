@@ -38,12 +38,12 @@ function loadWord() {
     placedSyllables = [];
     messageElement.textContent = '';
 
-    // Create hollow blocks
-    wordData.syllables.forEach((_, index) => {
+    // Create hollow blocks with expected syllables
+    wordData.syllables.forEach((syllable, index) => {
         const hollow = document.createElement('div');
         hollow.classList.add('hollow-block');
         hollow.dataset.index = index;
-        hollow.dataset.expected = wordData.syllables[index];
+        hollow.dataset.expected = syllable; // Store expected syllable
         hollow.addEventListener('dragover', dragOver);
         hollow.addEventListener('drop', drop);
         hollowBlocksElement.appendChild(hollow);
@@ -131,27 +131,27 @@ function touchEnd(e) {
 function handleDrop(target, syllable) {
     const index = target.dataset.index;
     const expected = target.dataset.expected;
-    if (placedSyllables[index] === undefined) {
+    if (!placedSyllables[index]) {
         if (syllable === expected) {
             target.textContent = syllable;
             target.classList.add('filled');
             placedSyllables[index] = syllable;
-            const draggedBlock = Array.from(syllableBlocksElement.children)
-                .find(block => block.textContent === syllable);
+            const draggedBlock = Array.from(syllableBlocksElement.children).find(block => block.textContent === syllable);
             if (draggedBlock) draggedBlock.remove();
+            correctSound.play().catch(() => console.log('Correct sound failed to load'));
 
-            if (placedSyllables.filter(s => s).length === words[currentWordIndex].syllables.length) {
+            // Check if the word is complete
+            if (placedSyllables.length === words[currentWordIndex].syllables.length) {
+                const wordAudio = new Audio(words[currentWordIndex].audio);
+                wordAudio.play().catch(() => console.log('Word audio failed to load'));
                 messageElement.textContent = "Correct!";
                 messageElement.style.color = '#32cd32';
-                correctSound.play().catch(() => console.log('Sound failed to load'));
-                setTimeout(nextWord, 1500);
-            } else {
-                correctSound.play().catch(() => console.log('Sound failed to load'));
+                setTimeout(nextWord, 2000); // Proceed to next word after 2 seconds
             }
         } else {
             messageElement.textContent = "Try again!";
             messageElement.style.color = '#ff4500';
-            wrongSound.play().catch(() => console.log('Sound failed to load'));
+            wrongSound.play().catch(() => console.log('Wrong sound failed to load'));
             target.style.borderColor = '#ff0000';
             setTimeout(() => target.style.borderColor = '#ff4500', 500);
         }
@@ -161,6 +161,11 @@ function handleDrop(target, syllable) {
 function nextWord() {
     currentWordIndex++;
     if (currentWordIndex < words.length) {
+        const nextWordData = words[currentWordIndex];
+        let nextLevel = nextWordData.syllables.length <= 3 ? 1 : nextWordData.syllables.length <= 4 ? 2 : 3;
+        if (nextLevel > parseInt(levelElement.textContent)) {
+            levelElement.textContent = nextLevel;
+        }
         loadWord();
     } else {
         messageElement.textContent = "Congratulations! You've completed all levels!";
