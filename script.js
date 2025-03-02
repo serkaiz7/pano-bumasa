@@ -26,7 +26,8 @@ const wrongSound = new Audio('wrong.mp3');
 
 function loadWord() {
     const wordData = words[currentWordIndex];
-    let level = wordData.syllables.length === 3 ? 1 : wordData.syllables.length === 4 ? 2 : 3;
+    const syllableCount = wordData.syllables.length;
+    let level = syllableCount <= 3 ? 1 : syllableCount <= 4 ? 2 : 3;
     levelElement.textContent = level;
     wordImageElement.src = wordData.image;
     wordImageElement.style.transform = 'scale(0)';
@@ -56,17 +57,28 @@ function loadWord() {
         block.setAttribute('draggable', true);
         block.addEventListener('dragstart', dragStart);
         block.addEventListener('dragend', dragEnd);
+        block.addEventListener('touchstart', touchStart);
+        block.addEventListener('touchmove', touchMove);
+        block.addEventListener('touchend', touchEnd);
+        block.tabIndex = 0; // Keyboard accessibility
         syllableBlocksElement.appendChild(block);
     });
 
-    // Hint on double-click
-    wordDisplayElement.ondblclick = () => {
-        const audio = new Audio(wordData.audio);
-        audio.play();
-        highlightNextSyllable();
+    // Hint on double-click or Enter key
+    wordDisplayElement.ondblclick = playHint;
+    wordDisplayElement.onkeydown = (e) => {
+        if (e.key === 'Enter') playHint();
     };
 }
 
+function playHint() {
+    const wordData = words[currentWordIndex];
+    const audio = new Audio(wordData.audio);
+    audio.play().catch(() => console.log('Audio failed to load'));
+    highlightNextSyllable();
+}
+
+// Drag-and-drop functions
 function dragStart(e) {
     e.dataTransfer.setData('text/plain', e.target.textContent);
     setTimeout(() => e.target.classList.add('dragging'), 0);
@@ -83,29 +95,61 @@ function dragOver(e) {
 function drop(e) {
     e.preventDefault();
     const syllable = e.dataTransfer.getData('text/plain');
-    const index = e.target.dataset.index;
-    const targetBlock = e.target;
+    handleDrop(e.target, syllable);
+}
 
+// Touch support functions
+let draggedElement = null;
+
+function touchStart(e) {
+    draggedElement = e.target;
+    e.target.classList.add('dragging');
+}
+
+function touchMove(e) {
+    e.preventDefault();
+    const touch = e.touches[0];
+    draggedElement.style.position = 'absolute';
+    draggedElement.style.left = `${touch.pageX - 50}px`;
+    draggedElement.style.top = `${touch.pageY - 50}px`;
+}
+
+function touchEnd(e) {
+    const touch = e.changedTouches[0];
+    const dropTarget = document.elementFromPoint(touch.clientX, touch.clientY);
+    if (dropTarget && dropTarget.classList.contains('hollow-block')) {
+        handleDrop(dropTarget, draggedElement.textContent);
+    }
+    draggedElement.classList.remove('dragging');
+    draggedElement.style.position = '';
+    draggedElement.style.left = '';
+    draggedElement.style.top = '';
+    draggedElement = null;
+}
+
+function handleDrop(target, syllable) {
+    const index = target.dataset.index;
     if (placedSyllables[index] === undefined) {
         if (words[currentWordIndex].syllables[index] === syllable) {
-            targetBlock.textContent = syllable;
-            targetBlock.classList.add('filled');
+            target.textContent = syllable;
+            target.classList.add('filled');
             placedSyllables[index] = syllable;
-            const draggedBlock = Array.from(syllableBlocksElement.children).find(block => block.textContent === syllable);
+            const draggedBlock = Array.from(syllableBlocksElement.children)
+                .find(block => block.textContent === syllable);
             if (draggedBlock) draggedBlock.remove();
 
             if (placedSyllables.filter(s => s).length === words[currentWordIndex].syllables.length) {
                 messageElement.textContent = "Correct!";
                 messageElement.style.color = '#32cd32';
-                correctSound.play();
+                correctSound.play().catch(() => console.log('Sound failed to load'));
                 setTimeout(nextWord, 1500);
             }
         } else {
             messageElement.textContent = "Try again!";
             messageElement.style.color = '#ff4500';
-            wrongSound.play();
-            targetBlock.style.borderColor = '#ff0000';
-            setTimeout(() => targetBlock.style.borderColor = '#ff4500', 500);
+            wrongSound.play().catch(() => console.log('Sound failed to load'));
+            target.style.borderColor = '#ff0000';
+            setTimeout(() => target.style.borderColor = '#ff4500', 500);
         }
     }
 }
