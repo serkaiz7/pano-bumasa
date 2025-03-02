@@ -49,7 +49,7 @@ function loadWord() {
     // Show timer for Levels 2 to 10 (words 2-10)
     if (currentWordIndex > 0) {
         timerContainer.style.display = 'block';
-        timeLeft = 35; // Set to 35 seconds
+        timeLeft = 35;
         timerBar.style.width = '100%';
         startTimer();
     } else {
@@ -75,11 +75,10 @@ function loadWord() {
         block.textContent = syllable;
         block.setAttribute('draggable', true);
         block.addEventListener('dragstart', dragStart);
-        block.addEventListener('touchstart', touchStart); // Immediate drag on touch
+        block.addEventListener('touchstart', touchStart);
         block.addEventListener('touchmove', touchMove);
         block.addEventListener('touchend', touchEnd);
-        block.addEventListener('click', () => playSyllableHint(syllable, wordData.syllableAudios)); // Single tap for sound
-        block.addEventListener('dblclick', () => {}); // Prevent double-tap interference
+        block.addEventListener('click', () => playSyllableHint(syllable, wordData.syllableAudios));
         block.tabIndex = 0;
         syllableBlocksElement.appendChild(block);
     });
@@ -179,6 +178,12 @@ function handleDrop(target, syllable) {
             placedSyllables[index] = syllable;
             const draggedBlock = Array.from(syllableBlocksElement.children).find(block => block.textContent === syllable);
             if (draggedBlock) draggedBlock.remove();
+            // Play the syllable sound when correctly placed
+            const syllableIndex = words[currentWordIndex].syllables.indexOf(syllable);
+            if (syllableIndex !== -1) {
+                const syllableAudio = new Audio(words[currentWordIndex].syllableAudios[syllableIndex]);
+                syllableAudio.play().catch(() => console.log(`Syllable audio ${words[currentWordIndex].syllableAudios[syllableIndex]} failed to load`));
+            }
             correctSound.play().catch(() => console.log('Correct sound failed to load'));
 
             // Check if all hollow blocks are correctly filled in order
