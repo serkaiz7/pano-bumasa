@@ -36,6 +36,7 @@ const retryCongratsButton = document.getElementById('retryCongratsButton');
 const pregameOverlay = document.getElementById('pregameOverlay');
 const nextButton = document.getElementById('nextButton');
 const wordContainer = document.getElementById('wordContainer');
+const startGameButton = document.getElementById('startGameButton');
 const finalScore = document.getElementById('finalScore');
 const wrongLevels = document.getElementById('wrongLevels');
 const backButton = document.getElementById('backButton');
@@ -71,14 +72,7 @@ window.onload = () => {
             });
             wordContainer.appendChild(item);
             nextButton.style.display = pregameIndex < shuffledWords.length - 1 ? 'block' : 'none';
-        } else {
-            nextButton.style.display = 'none';
-            setTimeout(() => {
-                pregameOverlay.style.display = 'none';
-                document.querySelector('.game-container').style.display = 'block';
-                currentWordIndex = 0;
-                loadWord();
-            }, 1000); // Delay to allow last word to be seen
+            startGameButton.style.display = pregameIndex === shuffledWords.length - 1 ? 'block' : 'none';
         }
     }
 
@@ -87,40 +81,47 @@ window.onload = () => {
         showWord();
     });
 
+    startGameButton.addEventListener('click', () => {
+        pregameOverlay.style.display = 'none';
+        document.querySelector('.game-container').style.display = 'block';
+        currentWordIndex = 0;
+        loadWord();
+    });
+
     showWord(); // Show first word
     pregameOverlay.style.display = 'block';
     backButton.addEventListener('click', () => {
         pregameOverlay.style.display = 'block';
         document.querySelector('.game-container').style.display = 'none';
         pregameIndex = 0;
-        showWord();
         currentWordIndex = 0;
         score = 0;
         wrongAnswers = [];
         placedSyllables = [];
         initialPlacedSyllables = [];
+        showWord();
     });
     backButtonGameOver.addEventListener('click', () => {
         gameOverOverlay.style.display = 'none';
         pregameOverlay.style.display = 'block';
         pregameIndex = 0;
-        showWord();
         currentWordIndex = 0;
         score = 0;
         wrongAnswers = [];
         placedSyllables = [];
         initialPlacedSyllables = [];
+        showWord();
     });
     backButtonCongrats.addEventListener('click', () => {
         congratsOverlay.style.display = 'none';
         pregameOverlay.style.display = 'block';
         pregameIndex = 0;
-        showWord();
         currentWordIndex = 0;
         score = 0;
         wrongAnswers = [];
         placedSyllables = [];
         initialPlacedSyllables = [];
+        showWord();
     });
 };
 
@@ -156,7 +157,7 @@ function loadWord() {
         hollow.dataset.index = index;
         hollow.dataset.expected = syllable;
         hollow.addEventListener('click', () => clearSyllable(hollow));
-        hollow.addEventListener('click', () => interchangeSyllable(hollow)); // Allow interchange after clear
+        hollow.addEventListener('click', () => interchangeSyllable(hollow));
         hollowBlocksElement.appendChild(hollow);
     });
 
@@ -215,7 +216,7 @@ function insertSyllable(syllable) {
         const hollow = hollowBlocksElement.children[emptyIndex];
         hollow.textContent = syllable;
         placedSyllables[emptyIndex] = syllable;
-        playSyllableHint(syllable, shuffledWords[currentWordIndex].syllableAudios); // Play sound on tap
+        playSyllableHint(syllable, shuffledWords[currentWordIndex].syllableAudios);
         checkCompletion();
     }
 }
