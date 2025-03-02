@@ -7,7 +7,14 @@
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-    <div class="game-container">
+    <div class="pregame-overlay" id="pregameOverlay">
+        <div class="pregame-content">
+            <h1>Learn the Words!</h1>
+            <div class="word-list" id="wordList"></div>
+            <button id="nextButton">Next</button>
+        </div>
+    </div>
+    <div class="game-container" style="display: none;">
         <h1>Syllable Builder</h1>
         <div class="level">Level: <span id="level">1</span></div>
         <div class="timer-container" id="timerContainer" style="display: none;">
