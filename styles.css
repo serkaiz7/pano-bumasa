@@ -194,6 +194,7 @@ h1 {
     color: #ff4500;
     border-radius: 5px;
     transition: all 0.3s ease;
+    cursor: pointer;
 }
 
 .hollow-block.filled {
